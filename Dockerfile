@@ -5,8 +5,10 @@ WORKDIR /go/src
 
 COPY . .
 
+RUN go install github.com/air-verse/air@latest
+
 RUN go mod download
 
 RUN go build -o main ./main.go
 
-CMD ["./main"]
+CMD ["air", "-c", ".air.toml"]
