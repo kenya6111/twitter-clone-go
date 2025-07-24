@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
+	"twitter-clone-go/controllers"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
@@ -17,26 +17,20 @@ type User struct {
     ID    int    `json:"id"`
     Name  string `json:"name"`
     Email string `json:"email"`
+	Password string `json:"password"`
 }
-func home(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, gin.H{"message": "Hello World!!"})
-}
-func healthCheck(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"status": "ok",
-	})
-}
+
 
 
 func getUsers(c *gin.Context) {
 	rows, err := db.Query("SELECT * FROM users")
-	
+
 	if err != nil {
 		log.Println(err)
 	}
 	for rows.Next() {
 		u := &User{}
-		if err := rows.Scan(&u.ID, &u.Name, &u.Email); err != nil {
+		if err := rows.Scan(&u.ID, &u.Name, &u.Email, &u.Password); err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(u)
@@ -81,8 +75,9 @@ func main(){
 	fmt.Println("Connected!")
 
 	router := gin.Default()
-	router.GET("/",home)
+	router.GET("/",controllers.Home)
 	router.GET("/users",getUsers)
-	router.GET("/health_check",healthCheck)
+	router.POST("/signup",controllers.SignUp)
+	router.GET("/health_check",controllers.HealthCheck)
 	router.Run()
 }
