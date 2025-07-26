@@ -1,18 +1,18 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"log"
 	"os"
-	"twitter-clone-go/controllers"
+	"twitter-clone-go/repository"
+	router "twitter-clone-go/router"
 
-	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq"
 )
 
-var db *sql.DB
-// User モデル
+var pool *pgxpool.Pool
 type User struct {
     ID    int    `json:"id"`
     Name  string `json:"name"`
@@ -21,28 +21,9 @@ type User struct {
 }
 
 
+func setupDB(dbDriver string, dsn string) (*pgxpool.Pool, error) {
 
-func getUsers(c *gin.Context) {
-	rows, err := db.Query("SELECT * FROM users")
-
-	if err != nil {
-		log.Println(err)
-	}
-	for rows.Next() {
-		u := &User{}
-		if err := rows.Scan(&u.ID, &u.Name, &u.Email, &u.Password); err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(u)
-	}
-	defer rows.Close()
-}
-
-func setupDB(dbDriver string, dsn string) (*sql.DB, error) {
-	db, err := sql.Open(dbDriver, dsn)
-	if err != nil {
-		return nil, err
-	}
+	db, err := pgxpool.New(context.Background(), dsn)
 	return db, err
 }
 
@@ -56,28 +37,22 @@ func main(){
 	dbDriver := "postgres"
     dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
         dbHost, dbPort, dbUser, dbPassword, dbName)
-	fmt.Println(dsn)
 	var err error
-	db, err = setupDB(dbDriver, dsn)
-	fmt.Println(db)
+	pool, err = setupDB(dbDriver, dsn)
+
+	repository.InitDB(pool)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer db.Close()
+	defer pool.Close()
 
 
-	pingErr := db.Ping()
+	pingErr := pool.Ping(context.Background())
 	if pingErr != nil {
 		log.Fatal(pingErr)
 	}
 	fmt.Println("Connected!")
-
-	router := gin.Default()
-	router.GET("/",controllers.Home)
-	router.GET("/users",getUsers)
-	router.POST("/signup",controllers.SignUp)
-	router.GET("/health_check",controllers.HealthCheck)
 	router.Run()
 }
