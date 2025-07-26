@@ -3,8 +3,8 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"regexp"
 	"twitter-clone-go/repository"
+	validation "twitter-clone-go/validation"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -35,17 +35,16 @@ func SelectUsers(c *gin.Context) {
 func SignUp(c *gin.Context) {
 
 	var newSignUpInfo signUpInfo;
-
 	if err := c.BindJSON(&newSignUpInfo); err != nil {
 		fmt.Println(err)
             return
     }
 
 	validate = validator.New(validator.WithRequiredStructEnabled())
-	validate.RegisterValidation("has_kigou", hasKigou)
-	validate.RegisterValidation("has_han_su", hasHanSu)
-	validate.RegisterValidation("has_lower_ei", hasLowerEi)
-	validate.RegisterValidation("has_upper_ei", hasUpperEi)
+	validate.RegisterValidation("has_kigou", validation.HasKigou)
+	validate.RegisterValidation("has_han_su", validation.HasHanSu)
+	validate.RegisterValidation("has_lower_ei", validation.HasLowerEi)
+	validate.RegisterValidation("has_upper_ei", validation.HasUpperEi)
 
 	signUpInfo := &signUpInfo{
 		Email: newSignUpInfo.Email,
@@ -81,29 +80,4 @@ func SignUp(c *gin.Context) {
 	}else{
 		fmt.Println("サインアップ失敗。。。")
 	}
-}
-
-func hasKigou(fl validator.FieldLevel) bool {
-	pw := fl.Field().String()
-	hasKigou := regexp.MustCompile(`[-_!?]`).MatchString(pw)
-	return hasKigou
-}
-
-func hasHanSu(fl validator.FieldLevel) bool {
-	pw := fl.Field().String()
-	hasSu := regexp.MustCompile(`[0-9]`).MatchString(pw)
-	return hasSu
-}
-
-func hasLowerEi(fl validator.FieldLevel) bool {
-	pw := fl.Field().String()
-	hasLowerEi := regexp.MustCompile(`[a-z]`).MatchString(pw)
-	return hasLowerEi
-}
-
-func hasUpperEi(fl validator.FieldLevel) bool {
-	pw := fl.Field().String()
-	hasUpperEi := regexp.MustCompile(`[A-Z]`).MatchString(pw)
-
-	return hasUpperEi
 }
