@@ -5,15 +5,15 @@
 package tutorial
 
 import (
-	"time"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type EmailVerifyToken struct {
 	ID        int32
 	UserID    int32
 	Token     string
-	ExpiresAt time.Time
-	CreatedAt time.Time
+	ExpiresAt pgtype.Timestamp
+	CreatedAt pgtype.Timestamp
 }
 
 type User struct {
@@ -21,5 +21,5 @@ type User struct {
 	Name     string
 	Email    string
 	Password string
-	IsActive bool
+	IsActive pgtype.Bool
 }

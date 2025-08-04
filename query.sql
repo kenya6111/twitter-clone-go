@@ -6,6 +6,10 @@ WHERE id = $1 LIMIT 1;
 SELECT * FROM users
 WHERE email = $1 LIMIT 1;
 
+-- name: CountUsersByEmail :one
+SELECT count(*) FROM users
+WHERE email = $1;
+
 -- name: ListUsers :many
 SELECT * FROM users
 ORDER BY name;

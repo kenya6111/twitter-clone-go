@@ -89,6 +89,7 @@ func ActivateHandler(c *gin.Context) {
 	token := c.Query("token")
 	if token == "" {
 		response.ErrorResponse(c, http.StatusBadRequest, "不正なアクセス")
+		return
 	}
 	userId := sessions.Default(c).Get("id").(int32)
 
@@ -96,20 +97,24 @@ func ActivateHandler(c *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 		response.ErrorResponse(c, http.StatusBadRequest, "認証失敗")
+		return
 	}
 
 	if result == nil {
 		response.ErrorResponse(c, http.StatusBadRequest, "認証メール未発行・もしくは認証済みのユーザ")
+		return
 	}
 
 	ok := repository.UpdateUser(c, userId)
 	if !ok {
 		response.ErrorResponse(c, http.StatusBadRequest, "認証失敗")
+		return
 	}
 
 	ok = repository.DeleteEmailVerifyToken(c, token)
 	if !ok {
 		response.ErrorResponse(c, http.StatusBadRequest, "認証失敗")
+		return
 	}
 
 	fmt.Println("完了")

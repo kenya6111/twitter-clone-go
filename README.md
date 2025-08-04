@@ -71,4 +71,9 @@ http://localhost:8080/health_check で"{status: ok}"のjsonが返るようにす
 - servicers ディレクトリに業務ロジックを移譲（ハンドラーが返すレスポンスを整形する）
 - サービスクラスからのエラーがいく種類かあるのでそのエラーごとの http ステータス返却を仕分けたい。全部 internalServerError ではダメなのかな？
 - ✅ メール送信処理を分離させたい
-- マルチステージビルド
+- middleware を学ぶ
+- gin.logger とは
+- pgtype.Timestamp と time.Time
+- エラーログ、code だけ返すか、code とエラーメッセージも返すのか
+- \*と&
+-

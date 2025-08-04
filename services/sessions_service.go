@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -30,16 +31,18 @@ func GetUserListService(c *gin.Context) (*[]db.User, error) {
 
 func SignUpService(c *gin.Context, signUpInfo request.SignUpInfo) error {
 
-	user, err := repository.GetUserByEmail(c, signUpInfo.Email)
+	user, err := repository.CountUsersByEmail(c, signUpInfo.Email)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
-	if user != nil {
-		return fmt.Errorf("duplicate error:%s is already exist", user.Email)
+	if user > 0 {
+		log.Println(fmt.Errorf("duplicate error:%s is already exist", signUpInfo.Email))
+		return fmt.Errorf("duplicate error:%s is already exist", signUpInfo.Email)
 	}
 
 	if signUpInfo.Password != signUpInfo.ConfirmPassword {
+		log.Println(fmt.Errorf("mismatch password: %s,%s", signUpInfo.Password, signUpInfo.ConfirmPassword))
 		return fmt.Errorf("mismatch password: %s,%s", signUpInfo.Password, signUpInfo.ConfirmPassword)
 	}
 
@@ -61,8 +64,9 @@ func SignUpService(c *gin.Context, signUpInfo request.SignUpInfo) error {
 		log.Println(err)
 		return err
 	}
-
-	verified, err := repository.CreateEmailVerifyToken(c, createdUser.ID, token, time.Now())
+	expiredAt := pgtype.Timestamp{}
+	_ = expiredAt.Scan(time.Now())
+	verified, err := repository.CreateEmailVerifyToken(c, createdUser.ID, token, expiredAt)
 	if err != nil {
 		log.Println(err)
 		return err

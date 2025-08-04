@@ -7,8 +7,21 @@ package tutorial
 
 import (
 	"context"
-	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+const countUsersByEmail = `-- name: CountUsersByEmail :one
+SELECT count(*) FROM users
+WHERE email = $1
+`
+
+func (q *Queries) CountUsersByEmail(ctx context.Context, email string) (int64, error) {
+	row := q.db.QueryRow(ctx, countUsersByEmail, email)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
 
 const createEmailVerifyToken = `-- name: CreateEmailVerifyToken :one
 INSERT INTO email_verify_token (
@@ -22,7 +35,7 @@ RETURNING id, user_id, token, expires_at, created_at
 type CreateEmailVerifyTokenParams struct {
 	UserID    int32
 	Token     string
-	ExpiresAt time.Time
+	ExpiresAt pgtype.Timestamp
 }
 
 func (q *Queries) CreateEmailVerifyToken(ctx context.Context, arg CreateEmailVerifyTokenParams) (EmailVerifyToken, error) {
@@ -186,7 +199,7 @@ RETURNING id, name, email, password, is_active
 
 type UpdateUserParams struct {
 	ID       int32
-	IsActive bool
+	IsActive pgtype.Bool
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {

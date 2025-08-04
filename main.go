@@ -31,6 +31,7 @@ func main() {
 		log.Fatal(pingErr)
 	}
 	fmt.Println("Connected!")
+
 	router.Run()
 }
 func init() {

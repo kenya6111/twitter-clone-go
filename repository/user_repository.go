@@ -10,6 +10,7 @@ import (
 	db "twitter-clone-go/tutorial"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -22,7 +23,7 @@ func SelectUsers(c *gin.Context) (*[]db.User, error) {
 	q := db.New(pool)
 	resultSet, err := q.ListUsers(context.Background())
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return nil, err
 	}
 	// c.JSON(http.StatusOK, resultSet)
@@ -39,6 +40,16 @@ func GetUserByEmail(c *gin.Context, email string) (*db.User, error) {
 
 	return &resultSet, nil
 }
+func CountUsersByEmail(c *gin.Context, email string) (int64, error) {
+	q := db.New(pool)
+	resultNum, err := q.CountUsersByEmail(context.Background(), email)
+	if err != nil {
+		log.Println(err)
+		return 99, err
+	}
+
+	return resultNum, nil
+}
 
 func CreateUser(ctx context.Context, email string, hash []byte) (*tutorial.User, error) {
 	q := db.New(pool)
@@ -49,13 +60,13 @@ func CreateUser(ctx context.Context, email string, hash []byte) (*tutorial.User,
 	}
 	resultSet, err := q.CreateUser(context.Background(), userInfo)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return nil, err
 	}
 	return &resultSet, nil
 }
 
-func CreateEmailVerifyToken(ctx context.Context, userId int32, token string, expiredAt time.Time) (*tutorial.EmailVerifyToken, error) {
+func CreateEmailVerifyToken(ctx context.Context, userId int32, token string, expiredAt pgtype.Timestamp) (*tutorial.EmailVerifyToken, error) {
 	q := db.New(pool)
 
 	verifyInfo := db.CreateEmailVerifyTokenParams{
@@ -65,7 +76,7 @@ func CreateEmailVerifyToken(ctx context.Context, userId int32, token string, exp
 	}
 	resultSet, err := q.CreateEmailVerifyToken(context.Background(), verifyInfo)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return nil, err
 	}
 	fmt.Println(resultSet)
@@ -80,7 +91,7 @@ func GetEmailVerifyToken(ctx context.Context, userId int32, token string, expire
 	}
 	resultSet, err := q.GetEmailVerifyToken(ctx, verifyInfo)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return nil, err
 	}
 
@@ -90,11 +101,11 @@ func UpdateUser(ctx context.Context, userId int32) bool {
 	q := db.New(pool)
 	activateInfo := db.UpdateUserParams{
 		ID:       userId,
-		IsActive: true,
+		IsActive: pgtype.Bool{Bool: true, Valid: true},
 	}
 	err := q.UpdateUser(ctx, activateInfo)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return false
 	}
 	fmt.Println("アクティベート完了")
@@ -106,7 +117,7 @@ func DeleteEmailVerifyToken(ctx context.Context, token string) bool {
 	q := db.New(pool)
 	err := q.DeleteEmailVerifyToken(ctx, token)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return false
 	}
 	fmt.Println("トークン削除完了")
