@@ -1,10 +1,15 @@
 version: "2"
+
 sql:
   - engine: "postgresql"
-    queries: "query.sql"
     schema: "schema.sql"
+    queries: "query.sql"
     gen:
       go:
-        package: "tutorial"
         out: "tutorial"
+        package: "tutorial"
         sql_package: "pgx/v5"
+        overrides:
+          - db_type: "timestamp"
+            go_type: "time.Time"
+          - db_type: "bool"

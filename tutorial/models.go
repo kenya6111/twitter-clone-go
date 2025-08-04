@@ -4,9 +4,22 @@
 
 package tutorial
 
+import (
+	"time"
+)
+
+type EmailVerifyToken struct {
+	ID        int32
+	UserID    int32
+	Token     string
+	ExpiresAt time.Time
+	CreatedAt time.Time
+}
+
 type User struct {
 	ID       int32
 	Name     string
 	Email    string
 	Password string
+	IsActive bool
 }

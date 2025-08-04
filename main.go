@@ -12,14 +12,13 @@ import (
 )
 
 type User struct {
-    ID    int    `json:"id"`
-    Name  string `json:"name"`
-    Email string `json:"email"`
+	ID       int    `json:"id"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-
-func main(){
+func main() {
 	pool, err := config.SetupDB()
 	if err != nil {
 		log.Fatal(err)
@@ -33,4 +32,8 @@ func main(){
 	}
 	fmt.Println("Connected!")
 	router.Run()
+}
+func init() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+	fmt.Println("init")
 }

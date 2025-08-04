@@ -7,6 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
 var pool *pgxpool.Pool
 
 type DBConfig struct {
@@ -30,7 +31,7 @@ func BuildDBConfig() *DBConfig {
 
 func DbURL(dbConfig *DBConfig) string {
 	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-        dbConfig.Host,
+		dbConfig.Host,
 		dbConfig.Port,
 		dbConfig.User,
 		dbConfig.Password,
