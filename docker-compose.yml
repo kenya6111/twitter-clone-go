@@ -1,0 +1,12 @@
+services:
+  go:
+    build:
+      dockerfile: ./Dockerfile
+      context: .
+    container_name: twitter-clone-api
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./:/go/src
+    working_dir: /go/src
+    stdin_open: true
