@@ -6,7 +6,6 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-
 func HasKigou(fl validator.FieldLevel) bool {
 	pw := fl.Field().String()
 	hasKigou := regexp.MustCompile(`[-_!?]`).MatchString(pw)

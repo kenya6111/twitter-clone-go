@@ -10,12 +10,13 @@ import (
 	"github.com/go-playground/validator/v10"
 	"golang.org/x/crypto/bcrypt"
 )
+
 var validate *validator.Validate
 
 type signUpInfo struct {
-	Email 		     string `validate:"required,email"`
-    Password  		 string `validate:"required,gte=8,has_kigou,has_han_su,has_lower_ei,has_upper_ei"`
-    ConfirmPassword  string `validate:"required,gte=8,has_kigou,has_han_su,has_lower_ei,has_upper_ei"`
+	Email           string `validate:"required,email"`
+	Password        string `validate:"required,gte=8,has_kigou,has_han_su,has_lower_ei,has_upper_ei"`
+	ConfirmPassword string `validate:"required,gte=8,has_kigou,has_han_su,has_lower_ei,has_upper_ei"`
 }
 
 func Home(c *gin.Context) {
@@ -27,18 +28,18 @@ func HealthCheck(c *gin.Context) {
 	})
 }
 func SelectUsers(c *gin.Context) {
-	user,err :=repository.SelectUsers(c)
+	user, err := repository.SelectUsers(c)
 	fmt.Println("⭐️")
-	fmt.Println(user,err)
+	fmt.Println(user, err)
 }
 
 func SignUp(c *gin.Context) {
 
-	var newSignUpInfo signUpInfo;
+	var newSignUpInfo signUpInfo
 	if err := c.BindJSON(&newSignUpInfo); err != nil {
 		fmt.Println(err)
-            return
-    }
+		return
+	}
 
 	validate = validator.New(validator.WithRequiredStructEnabled())
 	validate.RegisterValidation("has_kigou", validation.HasKigou)
@@ -47,8 +48,8 @@ func SignUp(c *gin.Context) {
 	validate.RegisterValidation("has_upper_ei", validation.HasUpperEi)
 
 	signUpInfo := &signUpInfo{
-		Email: newSignUpInfo.Email,
-		Password: newSignUpInfo.Password,
+		Email:           newSignUpInfo.Email,
+		Password:        newSignUpInfo.Password,
 		ConfirmPassword: newSignUpInfo.ConfirmPassword,
 	}
 
@@ -58,13 +59,13 @@ func SignUp(c *gin.Context) {
 		return
 	}
 
-	user,_ :=repository.GetUserByEmail(c,signUpInfo.Email)
-	if user == nil{
+	user, _ := repository.GetUserByEmail(c, signUpInfo.Email)
+	if user == nil {
 		fmt.Println("ユニーク！")
 		fmt.Println(user)
 	}
 
-	if signUpInfo.Password != signUpInfo.ConfirmPassword{
+	if signUpInfo.Password != signUpInfo.ConfirmPassword {
 		fmt.Println("パスワードが異なります。同じパスワードを入力してください")
 	}
 
@@ -72,12 +73,12 @@ func SignUp(c *gin.Context) {
 	fmt.Println(string(hash))
 	fmt.Println(err)
 	if err != nil {
-        return
-    }
+		return
+	}
 
-	if repository.CreateUser(c, signUpInfo.Email,hash){
+	if repository.CreateUser(c, signUpInfo.Email, hash) {
 		fmt.Println("サインアップ成功！")
-	}else{
+	} else {
 		fmt.Println("サインアップ失敗。。。")
 	}
 }
