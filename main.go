@@ -11,13 +11,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type User struct {
-	ID       int    `json:"id"`
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
 func main() {
 	pool, err := config.SetupDB()
 	if err != nil {

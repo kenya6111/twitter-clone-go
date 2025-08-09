@@ -14,6 +14,7 @@ type APIResponse struct {
 
 func SuccessResponse(c *gin.Context, data interface{}) {
 	c.JSON(http.StatusOK, APIResponse{
+		ErrCode: "0",
 		Message: "success",
 		Data:    data,
 	})
