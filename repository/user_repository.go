@@ -19,15 +19,14 @@ var pool *pgxpool.Pool
 func InitDB(p *pgxpool.Pool) {
 	pool = p
 }
-func SelectUsers(c *gin.Context) (*[]db.User, error) {
+func SelectUsers(c *gin.Context) ([]db.User, error) {
 	q := db.New(pool)
 	resultSet, err := q.ListUsers(context.Background())
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	// c.JSON(http.StatusOK, resultSet)
-	return &resultSet, nil
+	return resultSet, nil
 }
 
 func GetUserByEmail(c *gin.Context, email string) (*db.User, error) {
@@ -97,7 +96,7 @@ func GetEmailVerifyToken(ctx context.Context, userId int32, token string, expire
 
 	return &resultSet, nil
 }
-func UpdateUser(ctx context.Context, userId int32) bool {
+func UpdateUser(ctx context.Context, userId int32) error {
 	q := db.New(pool)
 	activateInfo := db.UpdateUserParams{
 		ID:       userId,
@@ -106,21 +105,17 @@ func UpdateUser(ctx context.Context, userId int32) bool {
 	err := q.UpdateUser(ctx, activateInfo)
 	if err != nil {
 		log.Println(err)
-		return false
+		return err
 	}
-	fmt.Println("アクティベート完了")
-
-	return true
+	return nil
 }
 
-func DeleteEmailVerifyToken(ctx context.Context, token string) bool {
+func DeleteEmailVerifyToken(ctx context.Context, token string) error {
 	q := db.New(pool)
 	err := q.DeleteEmailVerifyToken(ctx, token)
 	if err != nil {
 		log.Println(err)
-		return false
+		return err
 	}
-	fmt.Println("トークン削除完了")
-
-	return true
+	return nil
 }

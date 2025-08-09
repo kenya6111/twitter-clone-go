@@ -1,10 +1,9 @@
 package services
 
 import (
-	"errors"
 	"fmt"
-	"log"
 	"time"
+	"twitter-clone-go/apperrors"
 	"twitter-clone-go/common"
 	"twitter-clone-go/repository"
 	"twitter-clone-go/request"
@@ -16,15 +15,16 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var (
-	ErrEmailExists      = errors.New("email already exists")
-	ErrPasswordMismatch = errors.New("passwords do not match")
-)
-
-func GetUserListService(c *gin.Context) (*[]db.User, error) {
+func GetUserListService(c *gin.Context) ([]db.User, error) {
 	users, err := repository.SelectUsers(c)
 	if err != nil {
-		return nil, fmt.Errorf("ユーザ一覧取得失敗 %w", err)
+		err = apperrors.GetDataFailed.Wrap(err, "fail to get users data")
+		return nil, err
+	}
+
+	if len(users) == 0 {
+		err = apperrors.NAData.Wrap(ErrNoData, "no data")
+		return nil, err
 	}
 	return users, nil
 }
@@ -33,42 +33,42 @@ func SignUpService(c *gin.Context, signUpInfo request.SignUpInfo) error {
 
 	user, err := repository.CountUsersByEmail(c, signUpInfo.Email)
 	if err != nil {
-		log.Println(err)
+		err = apperrors.GetDataFailed.Wrap(ErrNoData, "fail to get user by email")
 		return err
 	}
 	if user > 0 {
-		log.Println(fmt.Errorf("duplicate error:%s is already exist", signUpInfo.Email))
-		return fmt.Errorf("duplicate error:%s is already exist", signUpInfo.Email)
+		err = apperrors.DuplicateData.Wrap(ErrDuplicateData, "already exist user data")
+		return err
 	}
 
 	if signUpInfo.Password != signUpInfo.ConfirmPassword {
-		log.Println(fmt.Errorf("mismatch password: %s,%s", signUpInfo.Password, signUpInfo.ConfirmPassword))
-		return fmt.Errorf("mismatch password: %s,%s", signUpInfo.Password, signUpInfo.ConfirmPassword)
+		err = apperrors.GetDataFailed.Wrap(ErrMismatchData, "mismatch password and confirmPassword")
+		return err
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(signUpInfo.Password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Println(err)
+		err = apperrors.GetDataFailed.Wrap(err, "fail to generate has value from password")
 		return err
 	}
 
 	createdUser, err := repository.CreateUser(c, signUpInfo.Email, hash)
 	if err != nil {
-		log.Println(err)
+		err = apperrors.InsertDataFailed.Wrap(err, "fail to insert user ")
 		return err
 	}
 
 	token, _ := common.GenerateSecureToken(32)
 
 	if err := common.SendMail(token); err != nil {
-		log.Println(err)
+		err = apperrors.GenerateTokenFailed.Wrap(err, "fail to generate secret token")
 		return err
 	}
 	expiredAt := pgtype.Timestamp{}
 	_ = expiredAt.Scan(time.Now())
 	verified, err := repository.CreateEmailVerifyToken(c, createdUser.ID, token, expiredAt)
 	if err != nil {
-		log.Println(err)
+		err = apperrors.InsertDataFailed.Wrap(err, "fail to insert emailVerifyToke")
 		return err
 	}
 
@@ -76,5 +76,31 @@ func SignUpService(c *gin.Context, signUpInfo request.SignUpInfo) error {
 	session := sessions.Default(c)
 	session.Set("id", createdUser.ID)
 	session.Save()
+	return nil
+}
+
+func ActivateService(c *gin.Context, token string, userId int32) error {
+	result, err := repository.GetEmailVerifyToken(c, userId, token, time.Now().Add(time.Hour*24))
+	if err != nil {
+		err = apperrors.GetDataFailed.Wrap(err, "fail to get emailVerifyToken")
+		return err
+	}
+
+	if result == nil {
+		err = apperrors.BadParam.Wrap(ErrNoData, "User with no verification email sent, or already verified")
+		return err
+	}
+
+	err = repository.UpdateUser(c, userId)
+	if err != nil {
+		err = apperrors.UpdateDataFailed.Wrap(err, "fail to activate user")
+		return err
+	}
+
+	err = repository.DeleteEmailVerifyToken(c, token)
+	if err != nil {
+		err = apperrors.DeleteDataFailed.Wrap(err, "fail to delete email verify token")
+		return err
+	}
 	return nil
 }
