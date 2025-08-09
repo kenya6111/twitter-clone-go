@@ -60,7 +60,7 @@ func SignUpService(c *gin.Context, signUpInfo request.SignUpInfo) error {
 
 	token, _ := common.GenerateSecureToken(32)
 
-	if err := common.SendMail(token); err != nil {
+	if err := common.SendMail(token, signUpInfo.Email); err != nil {
 		err = apperrors.GenerateTokenFailed.Wrap(err, "fail to generate secret token")
 		return err
 	}
