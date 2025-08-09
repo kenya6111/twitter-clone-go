@@ -1,7 +1,8 @@
-package validation
+package validations
 
 import (
 	"regexp"
+	"twitter-clone-go/request"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -29,4 +30,17 @@ func HasUpperEi(fl validator.FieldLevel) bool {
 	hasUpperEi := regexp.MustCompile(`[A-Z]`).MatchString(pw)
 
 	return hasUpperEi
+}
+
+func ValidateSignUpInfo(data request.SignUpInfo) error {
+	validate := validator.New(validator.WithRequiredStructEnabled())
+	validate.RegisterValidation("has_kigou", HasKigou)
+	validate.RegisterValidation("has_han_su", HasHanSu)
+	validate.RegisterValidation("has_lower_ei", HasLowerEi)
+	validate.RegisterValidation("has_upper_ei", HasUpperEi)
+
+	if err := validate.Struct(data); err != nil {
+		return err
+	}
+	return nil
 }

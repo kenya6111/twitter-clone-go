@@ -6,13 +6,10 @@ import (
 	"twitter-clone-go/request"
 	"twitter-clone-go/response"
 	"twitter-clone-go/services"
-	validation "twitter-clone-go/validation"
+	"twitter-clone-go/validations"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 )
-
-var validate *validator.Validate
 
 func Home(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{"message": "Hello World!"})
@@ -40,14 +37,7 @@ func SignUpHandler(c *gin.Context) {
 		apperrors.ErrorHandler(c, err)
 		return
 	}
-
-	validate = validator.New(validator.WithRequiredStructEnabled())
-	validate.RegisterValidation("has_kigou", validation.HasKigou)
-	validate.RegisterValidation("has_han_su", validation.HasHanSu)
-	validate.RegisterValidation("has_lower_ei", validation.HasLowerEi)
-	validate.RegisterValidation("has_upper_ei", validation.HasUpperEi)
-
-	if err := validate.Struct(signUpInfo); err != nil {
+	if err := validations.ValidateSignUpInfo(signUpInfo); err != nil {
 		err = apperrors.ReqBodyDecodeFailed.Wrap(err, "bad request body")
 		apperrors.ErrorHandler(c, err)
 		return
