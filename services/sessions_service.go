@@ -78,29 +78,3 @@ func SignUpService(c *gin.Context, signUpInfo request.SignUpInfo) error {
 	session.Save()
 	return nil
 }
-
-func ActivateService(c *gin.Context, token string, userId int32) error {
-	result, err := repository.GetEmailVerifyToken(c, userId, token, time.Now().Add(time.Hour*24))
-	if err != nil {
-		err = apperrors.GetDataFailed.Wrap(err, "fail to get emailVerifyToken")
-		return err
-	}
-
-	if result == nil {
-		err = apperrors.BadParam.Wrap(ErrNoData, "User with no verification email sent, or already verified")
-		return err
-	}
-
-	err = repository.UpdateUser(c, userId)
-	if err != nil {
-		err = apperrors.UpdateDataFailed.Wrap(err, "fail to activate user")
-		return err
-	}
-
-	err = repository.DeleteEmailVerifyToken(c, token)
-	if err != nil {
-		err = apperrors.DeleteDataFailed.Wrap(err, "fail to delete email verify token")
-		return err
-	}
-	return nil
-}
