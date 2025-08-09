@@ -31,5 +31,10 @@ func main() {
 		log.Fatal(pingErr)
 	}
 	fmt.Println("Connected!")
+
 	router.Run()
+}
+
+func init() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 }

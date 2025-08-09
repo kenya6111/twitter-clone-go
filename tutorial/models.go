@@ -4,9 +4,22 @@
 
 package tutorial
 
+import (
+	"github.com/jackc/pgx/v5/pgtype"
+)
+
+type EmailVerifyToken struct {
+	ID        int32
+	UserID    int32
+	Token     string
+	ExpiresAt pgtype.Timestamp
+	CreatedAt pgtype.Timestamp
+}
+
 type User struct {
 	ID       int32
 	Name     string
 	Email    string
 	Password string
+	IsActive pgtype.Bool
 }

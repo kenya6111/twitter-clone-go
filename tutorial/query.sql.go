@@ -7,7 +7,49 @@ package tutorial
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+const countUsersByEmail = `-- name: CountUsersByEmail :one
+SELECT count(*) FROM users
+WHERE email = $1
+`
+
+func (q *Queries) CountUsersByEmail(ctx context.Context, email string) (int64, error) {
+	row := q.db.QueryRow(ctx, countUsersByEmail, email)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const createEmailVerifyToken = `-- name: CreateEmailVerifyToken :one
+INSERT INTO email_verify_token (
+  user_id,token,expires_at
+) VALUES (
+  $1, $2, $3
+)
+RETURNING id, user_id, token, expires_at, created_at
+`
+
+type CreateEmailVerifyTokenParams struct {
+	UserID    int32
+	Token     string
+	ExpiresAt pgtype.Timestamp
+}
+
+func (q *Queries) CreateEmailVerifyToken(ctx context.Context, arg CreateEmailVerifyTokenParams) (EmailVerifyToken, error) {
+	row := q.db.QueryRow(ctx, createEmailVerifyToken, arg.UserID, arg.Token, arg.ExpiresAt)
+	var i EmailVerifyToken
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Token,
+		&i.ExpiresAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
@@ -15,7 +57,7 @@ INSERT INTO users (
 ) VALUES (
   $1, $2, $3
 )
-RETURNING id, name, email, password
+RETURNING id, name, email, password, is_active
 `
 
 type CreateUserParams struct {
@@ -32,8 +74,19 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Name,
 		&i.Email,
 		&i.Password,
+		&i.IsActive,
 	)
 	return i, err
+}
+
+const deleteEmailVerifyToken = `-- name: DeleteEmailVerifyToken :exec
+DELETE FROM email_verify_token
+WHERE  token = $1
+`
+
+func (q *Queries) DeleteEmailVerifyToken(ctx context.Context, token string) error {
+	_, err := q.db.Exec(ctx, deleteEmailVerifyToken, token)
+	return err
 }
 
 const deleteUser = `-- name: DeleteUser :exec
@@ -46,8 +99,32 @@ func (q *Queries) DeleteUser(ctx context.Context, id int32) error {
 	return err
 }
 
+const getEmailVerifyToken = `-- name: GetEmailVerifyToken :one
+SELECT id, user_id, token, expires_at, created_at FROM email_verify_token
+WHERE token = $1
+AND user_id = $2
+`
+
+type GetEmailVerifyTokenParams struct {
+	Token  string
+	UserID int32
+}
+
+func (q *Queries) GetEmailVerifyToken(ctx context.Context, arg GetEmailVerifyTokenParams) (EmailVerifyToken, error) {
+	row := q.db.QueryRow(ctx, getEmailVerifyToken, arg.Token, arg.UserID)
+	var i EmailVerifyToken
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Token,
+		&i.ExpiresAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getUser = `-- name: GetUser :one
-SELECT id, name, email, password FROM users
+SELECT id, name, email, password, is_active FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -59,12 +136,13 @@ func (q *Queries) GetUser(ctx context.Context, id int32) (User, error) {
 		&i.Name,
 		&i.Email,
 		&i.Password,
+		&i.IsActive,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, name, email, password FROM users
+SELECT id, name, email, password, is_active FROM users
 WHERE email = $1 LIMIT 1
 `
 
@@ -76,12 +154,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Name,
 		&i.Email,
 		&i.Password,
+		&i.IsActive,
 	)
 	return i, err
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, name, email, password FROM users
+SELECT id, name, email, password, is_active FROM users
 ORDER BY name
 `
 
@@ -99,6 +178,7 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 			&i.Name,
 			&i.Email,
 			&i.Password,
+			&i.IsActive,
 		); err != nil {
 			return nil, err
 		}
@@ -112,16 +192,17 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 
 const updateUser = `-- name: UpdateUser :exec
 UPDATE users
-  set name = $2
+  set is_active = $2
 WHERE id = $1
+RETURNING id, name, email, password, is_active
 `
 
 type UpdateUserParams struct {
-	ID   int32
-	Name string
+	ID       int32
+	IsActive pgtype.Bool
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
-	_, err := q.db.Exec(ctx, updateUser, arg.ID, arg.Name)
+	_, err := q.db.Exec(ctx, updateUser, arg.ID, arg.IsActive)
 	return err
 }

@@ -39,5 +39,17 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+  mailcatcher:
+    image: schickling/mailcatcher
+    container_name: mailcatcher
+    ports:
+      - "1080:1080"
+    networks:
+      - default
+      - twitter-clone-go_default #snowboardアプリのネットワーク名
 volumes:
   postgres:
+
+networks:
+  twitter-clone-go_default:
+    external: true
