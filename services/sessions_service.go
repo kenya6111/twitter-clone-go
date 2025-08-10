@@ -5,7 +5,6 @@ import (
 	"time"
 	"twitter-clone-go/apperrors"
 	"twitter-clone-go/common"
-	"twitter-clone-go/repository"
 	"twitter-clone-go/request"
 	db "twitter-clone-go/tutorial"
 
@@ -15,8 +14,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func GetUserListService(c *gin.Context) ([]db.User, error) {
-	users, err := repository.SelectUsers(c)
+func (svc *MyAppService) GetUserListService(c *gin.Context) ([]db.User, error) {
+	users, err := svc.repo.GetUserList()
 	if err != nil {
 		err = apperrors.GetDataFailed.Wrap(err, "fail to get users data")
 		return nil, err
@@ -29,9 +28,9 @@ func GetUserListService(c *gin.Context) ([]db.User, error) {
 	return users, nil
 }
 
-func SignUpService(c *gin.Context, signUpInfo request.SignUpInfo) error {
+func (svc *MyAppService) SignUpService(c *gin.Context, signUpInfo request.SignUpInfo) error {
 
-	user, err := repository.CountUsersByEmail(c, signUpInfo.Email)
+	user, err := svc.repo.CountUsersByEmail(c, signUpInfo.Email)
 	if err != nil {
 		err = apperrors.GetDataFailed.Wrap(ErrNoData, "fail to get user by email")
 		return err
@@ -52,7 +51,7 @@ func SignUpService(c *gin.Context, signUpInfo request.SignUpInfo) error {
 		return err
 	}
 
-	createdUser, err := repository.CreateUser(c, signUpInfo.Email, hash)
+	createdUser, err := svc.repo.CreateUser(c, signUpInfo.Email, hash)
 	if err != nil {
 		err = apperrors.InsertDataFailed.Wrap(err, "fail to insert user ")
 		return err
@@ -66,7 +65,7 @@ func SignUpService(c *gin.Context, signUpInfo request.SignUpInfo) error {
 	}
 	expiredAt := pgtype.Timestamp{}
 	_ = expiredAt.Scan(time.Now())
-	verified, err := repository.CreateEmailVerifyToken(c, createdUser.ID, token, expiredAt)
+	verified, err := svc.repo.CreateEmailVerifyToken(c, createdUser.ID, token, expiredAt)
 	if err != nil {
 		err = apperrors.InsertDataFailed.Wrap(err, "fail to insert emailVerifyToke")
 		return err

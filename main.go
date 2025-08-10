@@ -1,12 +1,12 @@
 package main
 
 import (
-	"context"
-	"fmt"
 	"log"
 	config "twitter-clone-go/config"
+	"twitter-clone-go/controllers"
 	"twitter-clone-go/repository"
 	router "twitter-clone-go/router"
+	"twitter-clone-go/services"
 
 	_ "github.com/lib/pq"
 )
@@ -19,13 +19,11 @@ func main() {
 	repository.InitDB(pool)
 	defer pool.Close()
 
-	pingErr := pool.Ping(context.Background())
-	if pingErr != nil {
-		log.Fatal(pingErr)
-	}
-	fmt.Println("Connected!")
+	repo := repository.NewMyAppRepository(pool)
+	svc := services.NewMyAppService(repo)
+	con := controllers.NewMyAppController(svc)
 
-	router.Run()
+	router.Run(con)
 }
 
 func init() {

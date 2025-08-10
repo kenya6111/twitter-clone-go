@@ -8,18 +8,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Run() {
-	router := setupRouter()
+func Run(con *controllers.MyAppController) {
+	router := SetupRouter(con)
 	router.Run()
 }
 
-func setupRouter() *gin.Engine {
+func SetupRouter(con *controllers.MyAppController) *gin.Engine {
 	router := gin.Default()
 	store := memstore.NewStore([]byte("secret"))
 	router.Use(sessions.Sessions("userInfo", store))
-	router.GET("/", controllers.Home)
-	router.GET("/users", controllers.GetUserListHandler)
-	router.POST("/signup", controllers.SignUpHandler)
-	router.GET("/health_check", controllers.HealthCheck)
+	router.GET("/", con.Home)
+	router.GET("/users", con.GetUserListHandler)
+	router.POST("/signup", con.SignUpHandler)
+	router.GET("/health_check", con.HealthCheck)
 	return router
 }

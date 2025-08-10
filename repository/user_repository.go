@@ -10,16 +10,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var pool *pgxpool.Pool
-
-func InitDB(p *pgxpool.Pool) {
-	pool = p
-}
-
-func SelectUsers(c *gin.Context) ([]db.User, error) {
+func (repo *MyAppRepository) GetUserList() ([]db.User, error) {
 	q := db.New(pool)
 	resultSet, err := q.ListUsers(context.Background())
 	if err != nil {
@@ -29,7 +22,7 @@ func SelectUsers(c *gin.Context) ([]db.User, error) {
 	return resultSet, nil
 }
 
-func GetUserByEmail(c *gin.Context, email string) (*db.User, error) {
+func (repo *MyAppRepository) GetUserByEmail(c *gin.Context, email string) (*db.User, error) {
 	q := db.New(pool)
 	resultSet, err := q.GetUserByEmail(context.Background(), email)
 	if err != nil {
@@ -40,7 +33,7 @@ func GetUserByEmail(c *gin.Context, email string) (*db.User, error) {
 	return &resultSet, nil
 
 }
-func CountUsersByEmail(c *gin.Context, email string) (int64, error) {
+func (repo *MyAppRepository) CountUsersByEmail(c *gin.Context, email string) (int64, error) {
 	q := db.New(pool)
 	resultNum, err := q.CountUsersByEmail(context.Background(), email)
 	if err != nil {
@@ -51,7 +44,7 @@ func CountUsersByEmail(c *gin.Context, email string) (int64, error) {
 	return resultNum, nil
 }
 
-func CreateUser(ctx context.Context, email string, hash []byte) (*tutorial.User, error) {
+func (repo *MyAppRepository) CreateUser(ctx context.Context, email string, hash []byte) (*tutorial.User, error) {
 	q := db.New(pool)
 	userInfo := db.CreateUserParams{
 		Name:     email,
@@ -66,7 +59,7 @@ func CreateUser(ctx context.Context, email string, hash []byte) (*tutorial.User,
 	return &resultSet, nil
 }
 
-func CreateEmailVerifyToken(ctx context.Context, userId int32, token string, expiredAt pgtype.Timestamp) (*tutorial.EmailVerifyToken, error) {
+func (repo *MyAppRepository) CreateEmailVerifyToken(ctx context.Context, userId int32, token string, expiredAt pgtype.Timestamp) (*tutorial.EmailVerifyToken, error) {
 	q := db.New(pool)
 
 	verifyInfo := db.CreateEmailVerifyTokenParams{
