@@ -16,7 +16,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	repository.InitDB(pool)
 	defer pool.Close()
 
 	repo := repository.NewMyAppRepository(pool)

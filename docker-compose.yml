@@ -29,7 +29,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - postgres:/var/lib/postgresql/data
-      - ./sql/init:/docker-entrypoint-initdb.d
+      # - ./sql/init:/docker-entrypoint-initdb.d
     ports:
       - 5432:5432
     expose:
@@ -46,7 +46,7 @@ services:
       - "1080:1080"
     networks:
       - default
-      - twitter-clone-go_default #snowboardアプリのネットワーク名
+      - twitter-clone-go_default
 volumes:
   postgres:
 

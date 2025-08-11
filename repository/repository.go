@@ -4,12 +4,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var pool *pgxpool.Pool
-
-func InitDB(p *pgxpool.Pool) {
-	pool = p
-}
-
 type MyAppRepository struct {
 	pool *pgxpool.Pool
 }

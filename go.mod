@@ -5,12 +5,17 @@ go 1.24.1
 require github.com/gin-contrib/sessions v1.0.4
 
 require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/go-playground/assert/v2 v2.2.0 // indirect
 	github.com/gorilla/context v1.1.2 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
 	github.com/gorilla/sessions v1.4.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/quasoft/memstore v0.0.0-20191010062613-2bce066d2b0b // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
+	github.com/stretchr/testify v1.10.0 // indirect
 )
 
 require (

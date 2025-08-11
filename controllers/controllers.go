@@ -1,11 +1,11 @@
 package controllers
 
-import "twitter-clone-go/services"
+import "twitter-clone-go/controllers/services"
 
 type MyAppController struct {
-	svc *services.MyAppService
+	svc services.SessionServicer
 }
 
-func NewMyAppController(s *services.MyAppService) *MyAppController {
+func NewMyAppController(s services.SessionServicer) *MyAppController {
 	return &MyAppController{svc: s}
 }

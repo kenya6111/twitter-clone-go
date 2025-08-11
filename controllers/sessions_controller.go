@@ -21,7 +21,7 @@ func (con *MyAppController) HealthCheck(c *gin.Context) {
 }
 
 func (con *MyAppController) GetUserListHandler(c *gin.Context) {
-	users, err := con.svc.GetUserListService(c)
+	users, err := con.svc.GetUserListService()
 	if err != nil {
 		apperrors.ErrorHandler(c, err)
 		return

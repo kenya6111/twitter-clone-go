@@ -14,7 +14,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (svc *MyAppService) GetUserListService(c *gin.Context) ([]db.User, error) {
+func (svc *MyAppService) GetUserListService() ([]db.User, error) {
 	users, err := svc.repo.GetUserList()
 	if err != nil {
 		err = apperrors.GetDataFailed.Wrap(err, "fail to get users data")

@@ -75,9 +75,13 @@ http://localhost:8080/health_check で"{status: ok}"のjsonが返るようにす
 - gin.logger とは
 - ✅ pgtype.Timestamp と time.Time
 - ✅ エラーログ、code だけ返すか、code とエラーメッセージも返すのか
-- ✅\*と&
+- \*と&
 - ✅ レスポンスデータでエラーメッセージとエラーメッセージのコードを返す
 - 一つのファイルに 1 つのデータベースの変数を割り当てて使い回す
 - interface
 - 1 機能ごとに記事を書く
 - デバック
+- API を作りながら進む Go 中級者への道の 4 章と 8 章をまとめる
+- interface
+- & \*
+- type ~~ struct {}

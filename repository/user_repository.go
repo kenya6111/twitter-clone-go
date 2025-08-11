@@ -13,7 +13,7 @@ import (
 )
 
 func (repo *MyAppRepository) GetUserList() ([]db.User, error) {
-	q := db.New(pool)
+	q := db.New(repo.pool)
 	resultSet, err := q.ListUsers(context.Background())
 	if err != nil {
 		log.Println(err)
@@ -23,7 +23,7 @@ func (repo *MyAppRepository) GetUserList() ([]db.User, error) {
 }
 
 func (repo *MyAppRepository) GetUserByEmail(c *gin.Context, email string) (*db.User, error) {
-	q := db.New(pool)
+	q := db.New(repo.pool)
 	resultSet, err := q.GetUserByEmail(context.Background(), email)
 	if err != nil {
 		log.Println(err)
@@ -34,7 +34,7 @@ func (repo *MyAppRepository) GetUserByEmail(c *gin.Context, email string) (*db.U
 
 }
 func (repo *MyAppRepository) CountUsersByEmail(c *gin.Context, email string) (int64, error) {
-	q := db.New(pool)
+	q := db.New(repo.pool)
 	resultNum, err := q.CountUsersByEmail(context.Background(), email)
 	if err != nil {
 		log.Println(err)
@@ -45,7 +45,7 @@ func (repo *MyAppRepository) CountUsersByEmail(c *gin.Context, email string) (in
 }
 
 func (repo *MyAppRepository) CreateUser(ctx context.Context, email string, hash []byte) (*tutorial.User, error) {
-	q := db.New(pool)
+	q := db.New(repo.pool)
 	userInfo := db.CreateUserParams{
 		Name:     email,
 		Email:    email,
@@ -60,7 +60,7 @@ func (repo *MyAppRepository) CreateUser(ctx context.Context, email string, hash 
 }
 
 func (repo *MyAppRepository) CreateEmailVerifyToken(ctx context.Context, userId int32, token string, expiredAt pgtype.Timestamp) (*tutorial.EmailVerifyToken, error) {
-	q := db.New(pool)
+	q := db.New(repo.pool)
 
 	verifyInfo := db.CreateEmailVerifyTokenParams{
 		UserID:    userId,
