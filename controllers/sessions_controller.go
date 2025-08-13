@@ -1,79 +1,59 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
-	"regexp"
+	"twitter-clone-go/apperrors"
+	"twitter-clone-go/controllers/services"
+	"twitter-clone-go/request"
+	"twitter-clone-go/response"
+	"twitter-clone-go/validations"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 )
-var validate *validator.Validate
 
-type signUpInfo struct {
-	Email string     `validate:"required,email"`
-    Password  string `validate:"required,gte=8,has_kigou,has_han_su,has_lower_ei,has_upper_ei"`
+type SessionController struct {
+	service services.SessionServicer
 }
 
-func Home(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, gin.H{"message": "Hello World!!!!!"})
+func NewSessionController(s services.SessionServicer) *SessionController {
+	return &SessionController{service: s}
 }
-func HealthCheck(c *gin.Context) {
+
+func (sc *SessionController) Home(c *gin.Context) {
+	c.IndentedJSON(http.StatusOK, gin.H{"message": "Hello World!"})
+}
+
+func (sc *SessionController) HealthCheck(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"status": "ok",
 	})
 }
 
-func SignUp(c *gin.Context) {
-
-	var newSignUpInfo signUpInfo;
-
-	if err := c.BindJSON(&newSignUpInfo); err != nil {
-		fmt.Println(err)
-            return
-    }
-
-	validate = validator.New(validator.WithRequiredStructEnabled())
-	validate.RegisterValidation("has_kigou", hasKigou)
-	validate.RegisterValidation("has_han_su", hasHanSu)
-	validate.RegisterValidation("has_lower_ei", hasLowerEi)
-	validate.RegisterValidation("has_upper_ei", hasUpperEi)
-
-	signUpInfo := &signUpInfo{
-		Email: newSignUpInfo.Email,
-		Password: newSignUpInfo.Password,
+func (sc *SessionController) GetUserListHandler(c *gin.Context) {
+	users, err := sc.service.GetUserListService()
+	if err != nil {
+		apperrors.ErrorHandler(c, err)
+		return
 	}
+	response.SuccessResponse(c, users)
+}
 
-	errors := validate.Struct(signUpInfo)
-	if errors != nil {
-		fmt.Println(errors)
+func (sc *SessionController) SignUpHandler(c *gin.Context) {
+	var signUpInfo request.SignUpInfo
+	if err := c.BindJSON(&signUpInfo); err != nil {
+		err = apperrors.ReqBodyDecodeFailed.Wrap(err, "bad request body")
+		apperrors.ErrorHandler(c, err)
+		return
+	}
+	if err := validations.ValidateSignUpInfo(signUpInfo); err != nil {
+		err = apperrors.ReqBodyDecodeFailed.Wrap(err, "bad request body")
+		apperrors.ErrorHandler(c, err)
 		return
 	}
 
-	
-}
-
-func hasKigou(fl validator.FieldLevel) bool {  //引数の型、返り値は固定
-	pw := fl.Field().String()
-	hasKigou := regexp.MustCompile(`[-_!?]`).MatchString(pw)
-	return hasKigou
-}
-
-func hasHanSu(fl validator.FieldLevel) bool {  //引数の型、返り値は固定
-	pw := fl.Field().String()
-	hasSu := regexp.MustCompile(`[0-9]`).MatchString(pw)
-	return hasSu
-}
-
-func hasLowerEi(fl validator.FieldLevel) bool {  //引数の型、返り値は固定
-	pw := fl.Field().String()
-	hasLowerEi := regexp.MustCompile(`[a-z]`).MatchString(pw)
-	return hasLowerEi
-}
-
-func hasUpperEi(fl validator.FieldLevel) bool {  //引数の型、返り値は固定
-	pw := fl.Field().String()
-	hasUpperEi := regexp.MustCompile(`[A-Z]`).MatchString(pw)
-
-	return hasUpperEi
+	if err := sc.service.SignUpService(c, signUpInfo); err != nil {
+		apperrors.ErrorHandler(c, err)
+		return
+	}
+	response.SuccessResponse(c, nil)
 }
