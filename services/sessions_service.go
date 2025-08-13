@@ -5,9 +5,8 @@ import (
 	"time"
 	"twitter-clone-go/apperrors"
 	"twitter-clone-go/common"
-	"twitter-clone-go/repository"
+	domain "twitter-clone-go/domain/user"
 	"twitter-clone-go/request"
-	"twitter-clone-go/tutorial"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -16,15 +15,15 @@ import (
 )
 
 type SessionService struct {
-	repository *repository.UserRepository
+	repository domain.UserRepository
 }
 
-func NewSessionService(r *repository.UserRepository) *SessionService {
+func NewSessionService(r domain.UserRepository) *SessionService {
 	return &SessionService{repository: r}
 }
 
-func (ss *SessionService) GetUserListService() ([]tutorial.User, error) {
-	users, err := ss.repository.SelectUsers()
+func (ss *SessionService) GetUserListService() ([]domain.User, error) {
+	users, err := ss.repository.FindAll()
 	if err != nil {
 		err = apperrors.GetDataFailed.Wrap(err, "fail to get users data")
 		return nil, err
@@ -39,7 +38,7 @@ func (ss *SessionService) GetUserListService() ([]tutorial.User, error) {
 
 func (ss *SessionService) SignUpService(c *gin.Context, signUpInfo request.SignUpInfo) error {
 
-	user, err := ss.repository.CountUsersByEmail(c, signUpInfo.Email)
+	user, err := ss.repository.CountByEmail(signUpInfo.Email)
 	if err != nil {
 		err = apperrors.GetDataFailed.Wrap(ErrNoData, "fail to get user by email")
 		return err
@@ -60,7 +59,7 @@ func (ss *SessionService) SignUpService(c *gin.Context, signUpInfo request.SignU
 		return err
 	}
 
-	createdUser, err := ss.repository.CreateUser(c, signUpInfo.Email, hash)
+	createdUser, err := ss.repository.CreateUser(signUpInfo.Email, hash)
 	if err != nil {
 		err = apperrors.InsertDataFailed.Wrap(err, "fail to insert user ")
 		return err
@@ -74,7 +73,7 @@ func (ss *SessionService) SignUpService(c *gin.Context, signUpInfo request.SignU
 	}
 	expiredAt := pgtype.Timestamp{}
 	_ = expiredAt.Scan(time.Now())
-	verified, err := ss.repository.CreateEmailVerifyToken(c, createdUser.ID, token, expiredAt)
+	verified, err := ss.repository.CreateEmailVerifyToken(createdUser.ID, token, expiredAt)
 	if err != nil {
 		err = apperrors.InsertDataFailed.Wrap(err, "fail to insert emailVerifyToke")
 		return err

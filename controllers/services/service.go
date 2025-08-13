@@ -1,13 +1,13 @@
 package services
 
 import (
+	domain "twitter-clone-go/domain/user"
 	"twitter-clone-go/request"
-	db "twitter-clone-go/tutorial"
 
 	"github.com/gin-gonic/gin"
 )
 
 type SessionServicer interface {
-	GetUserListService() ([]db.User, error)
+	GetUserListService() ([]domain.User, error)
 	SignUpService(c *gin.Context, signUpInfo request.SignUpInfo) error
 }
