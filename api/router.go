@@ -3,7 +3,7 @@ package api
 import (
 	"twitter-clone-go/controllers"
 	"twitter-clone-go/infrasctructure/postgres"
-	"twitter-clone-go/services"
+	"twitter-clone-go/usecase"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/memstore"
@@ -20,7 +20,7 @@ func NewRouter(pool *pgxpool.Pool) *gin.Engine {
 	router := gin.Default()
 
 	repo := postgres.NewUserRepository(pool)
-	ser := services.NewSessionService(repo)
+	ser := usecase.NewSessionService(repo)
 	con := controllers.NewSessionController(ser)
 
 	store := memstore.NewStore([]byte("secret"))
