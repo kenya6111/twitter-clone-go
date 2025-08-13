@@ -7,7 +7,7 @@ import (
 	"twitter-clone-go/common"
 	"twitter-clone-go/repository"
 	"twitter-clone-go/request"
-	db "twitter-clone-go/tutorial"
+	"twitter-clone-go/tutorial"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -15,8 +15,16 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func GetUserListService(c *gin.Context) ([]db.User, error) {
-	users, err := repository.SelectUsers(c)
+type SessionService struct {
+	repository *repository.UserRepository
+}
+
+func NewSessionService(r *repository.UserRepository) *SessionService {
+	return &SessionService{repository: r}
+}
+
+func (ss *SessionService) GetUserListService() ([]tutorial.User, error) {
+	users, err := ss.repository.SelectUsers()
 	if err != nil {
 		err = apperrors.GetDataFailed.Wrap(err, "fail to get users data")
 		return nil, err
@@ -29,9 +37,9 @@ func GetUserListService(c *gin.Context) ([]db.User, error) {
 	return users, nil
 }
 
-func SignUpService(c *gin.Context, signUpInfo request.SignUpInfo) error {
+func (ss *SessionService) SignUpService(c *gin.Context, signUpInfo request.SignUpInfo) error {
 
-	user, err := repository.CountUsersByEmail(c, signUpInfo.Email)
+	user, err := ss.repository.CountUsersByEmail(c, signUpInfo.Email)
 	if err != nil {
 		err = apperrors.GetDataFailed.Wrap(ErrNoData, "fail to get user by email")
 		return err
@@ -52,7 +60,7 @@ func SignUpService(c *gin.Context, signUpInfo request.SignUpInfo) error {
 		return err
 	}
 
-	createdUser, err := repository.CreateUser(c, signUpInfo.Email, hash)
+	createdUser, err := ss.repository.CreateUser(c, signUpInfo.Email, hash)
 	if err != nil {
 		err = apperrors.InsertDataFailed.Wrap(err, "fail to insert user ")
 		return err
@@ -66,7 +74,7 @@ func SignUpService(c *gin.Context, signUpInfo request.SignUpInfo) error {
 	}
 	expiredAt := pgtype.Timestamp{}
 	_ = expiredAt.Scan(time.Now())
-	verified, err := repository.CreateEmailVerifyToken(c, createdUser.ID, token, expiredAt)
+	verified, err := ss.repository.CreateEmailVerifyToken(c, createdUser.ID, token, expiredAt)
 	if err != nil {
 		err = apperrors.InsertDataFailed.Wrap(err, "fail to insert emailVerifyToke")
 		return err

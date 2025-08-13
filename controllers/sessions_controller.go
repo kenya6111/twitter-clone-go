@@ -3,26 +3,34 @@ package controllers
 import (
 	"net/http"
 	"twitter-clone-go/apperrors"
+	"twitter-clone-go/controllers/services"
 	"twitter-clone-go/request"
 	"twitter-clone-go/response"
-	"twitter-clone-go/services"
 	"twitter-clone-go/validations"
 
 	"github.com/gin-gonic/gin"
 )
 
-func Home(c *gin.Context) {
+type SessionController struct {
+	service services.SessionServicer
+}
+
+func NewSessionController(s services.SessionServicer) *SessionController {
+	return &SessionController{service: s}
+}
+
+func (sc *SessionController) Home(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{"message": "Hello World!"})
 }
 
-func HealthCheck(c *gin.Context) {
+func (sc *SessionController) HealthCheck(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"status": "ok",
 	})
 }
 
-func GetUserListHandler(c *gin.Context) {
-	users, err := services.GetUserListService(c)
+func (sc *SessionController) GetUserListHandler(c *gin.Context) {
+	users, err := sc.service.GetUserListService()
 	if err != nil {
 		apperrors.ErrorHandler(c, err)
 		return
@@ -30,7 +38,7 @@ func GetUserListHandler(c *gin.Context) {
 	response.SuccessResponse(c, users)
 }
 
-func SignUpHandler(c *gin.Context) {
+func (sc *SessionController) SignUpHandler(c *gin.Context) {
 	var signUpInfo request.SignUpInfo
 	if err := c.BindJSON(&signUpInfo); err != nil {
 		err = apperrors.ReqBodyDecodeFailed.Wrap(err, "bad request body")
@@ -43,7 +51,7 @@ func SignUpHandler(c *gin.Context) {
 		return
 	}
 
-	if err := services.SignUpService(c, signUpInfo); err != nil {
+	if err := sc.service.SignUpService(c, signUpInfo); err != nil {
 		apperrors.ErrorHandler(c, err)
 		return
 	}

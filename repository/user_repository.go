@@ -13,14 +13,16 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var pool *pgxpool.Pool
-
-func InitDB(p *pgxpool.Pool) {
-	pool = p
+type UserRepository struct {
+	pool *pgxpool.Pool
 }
 
-func SelectUsers(c *gin.Context) ([]db.User, error) {
-	q := db.New(pool)
+func NewUserRepository(pool *pgxpool.Pool) *UserRepository {
+	return &UserRepository{pool: pool}
+}
+
+func (ur *UserRepository) SelectUsers() ([]db.User, error) {
+	q := db.New(ur.pool)
 	resultSet, err := q.ListUsers(context.Background())
 	if err != nil {
 		log.Println(err)
@@ -29,8 +31,8 @@ func SelectUsers(c *gin.Context) ([]db.User, error) {
 	return resultSet, nil
 }
 
-func GetUserByEmail(c *gin.Context, email string) (*db.User, error) {
-	q := db.New(pool)
+func (ur *UserRepository) GetUserByEmail(c *gin.Context, email string) (*db.User, error) {
+	q := db.New(ur.pool)
 	resultSet, err := q.GetUserByEmail(context.Background(), email)
 	if err != nil {
 		log.Println(err)
@@ -40,8 +42,8 @@ func GetUserByEmail(c *gin.Context, email string) (*db.User, error) {
 	return &resultSet, nil
 
 }
-func CountUsersByEmail(c *gin.Context, email string) (int64, error) {
-	q := db.New(pool)
+func (ur *UserRepository) CountUsersByEmail(c *gin.Context, email string) (int64, error) {
+	q := db.New(ur.pool)
 	resultNum, err := q.CountUsersByEmail(context.Background(), email)
 	if err != nil {
 		log.Println(err)
@@ -51,8 +53,8 @@ func CountUsersByEmail(c *gin.Context, email string) (int64, error) {
 	return resultNum, nil
 }
 
-func CreateUser(ctx context.Context, email string, hash []byte) (*tutorial.User, error) {
-	q := db.New(pool)
+func (ur *UserRepository) CreateUser(ctx context.Context, email string, hash []byte) (*tutorial.User, error) {
+	q := db.New(ur.pool)
 	userInfo := db.CreateUserParams{
 		Name:     email,
 		Email:    email,
@@ -66,8 +68,8 @@ func CreateUser(ctx context.Context, email string, hash []byte) (*tutorial.User,
 	return &resultSet, nil
 }
 
-func CreateEmailVerifyToken(ctx context.Context, userId int32, token string, expiredAt pgtype.Timestamp) (*tutorial.EmailVerifyToken, error) {
-	q := db.New(pool)
+func (ur *UserRepository) CreateEmailVerifyToken(ctx context.Context, userId int32, token string, expiredAt pgtype.Timestamp) (*tutorial.EmailVerifyToken, error) {
+	q := db.New(ur.pool)
 
 	verifyInfo := db.CreateEmailVerifyTokenParams{
 		UserID:    userId,
