@@ -3,13 +3,13 @@ package main
 import (
 	"log"
 	"twitter-clone-go/api"
-	"twitter-clone-go/config"
+	"twitter-clone-go/infrasctructure/postgres"
 
 	_ "github.com/lib/pq"
 )
 
 func main() {
-	pool, err := config.SetupDB()
+	pool, err := postgres.SetupDB()
 	if err != nil {
 		log.Fatal(err)
 	}
