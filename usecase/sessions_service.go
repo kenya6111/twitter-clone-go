@@ -6,7 +6,7 @@ import (
 	"twitter-clone-go/apperrors"
 	"twitter-clone-go/common"
 	domain "twitter-clone-go/domain/user"
-	"twitter-clone-go/request"
+	"twitter-clone-go/usecase/dto"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -36,7 +36,7 @@ func (ss *SessionService) GetUserListService() ([]domain.User, error) {
 	return users, nil
 }
 
-func (ss *SessionService) SignUpService(c *gin.Context, signUpInfo request.SignUpInfo) error {
+func (ss *SessionService) SignUpService(c *gin.Context, signUpInfo dto.SignUpInfo) error {
 
 	user, err := ss.repository.CountByEmail(signUpInfo.Email)
 	if err != nil {

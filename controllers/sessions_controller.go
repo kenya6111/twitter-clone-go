@@ -6,6 +6,7 @@ import (
 	"twitter-clone-go/controllers/services"
 	"twitter-clone-go/request"
 	"twitter-clone-go/response"
+	"twitter-clone-go/usecase/dto"
 	"twitter-clone-go/validations"
 
 	"github.com/gin-gonic/gin"
@@ -51,7 +52,13 @@ func (sc *SessionController) SignUpHandler(c *gin.Context) {
 		return
 	}
 
-	if err := sc.service.SignUpService(c, signUpInfo); err != nil {
+	signUpDto := dto.SignUpInfo{
+		Email:           signUpInfo.Email,
+		Password:        signUpInfo.Password,
+		ConfirmPassword: signUpInfo.ConfirmPassword,
+	}
+
+	if err := sc.service.SignUpService(c, signUpDto); err != nil {
 		apperrors.ErrorHandler(c, err)
 		return
 	}
