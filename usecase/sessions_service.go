@@ -91,6 +91,9 @@ func (ss *SessionService) SignUpService(c *gin.Context, signUpInfo dto.SignUpInf
 
 	session := sessions.Default(c)
 	session.Set("id", createdUser.ID)
-	session.Save()
+	if err := session.Save(); err != nil {
+		return apperrors.SessionSaveFailed.Wrap(err, "failed to save session")
+	}
+
 	return nil
 }

@@ -15,6 +15,7 @@ const (
 	GenerateTokenFailed ErrCode = "S008"
 	DeleteDataFailed    ErrCode = "S009"
 	SendMailFailed      ErrCode = "S010"
+	SessionSaveFailed   ErrCode = "S011"
 
 	ReqBodyDecodeFailed ErrCode = "R001"
 	BadParam            ErrCode = "R002"
