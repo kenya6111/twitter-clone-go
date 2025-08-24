@@ -9,7 +9,6 @@ import (
 	"twitter-clone-go/infrasctructure/postgres"
 	"twitter-clone-go/usecase/dto"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/bcrypt"
@@ -87,12 +86,6 @@ func (ss *SessionService) SignUpService(c *gin.Context, signUpInfo dto.SignUpInf
 	// --- トランザクション成功後にメール送信 ---
 	if err := common.SendMail(token, signUpInfo.Email); err != nil {
 		return apperrors.GenerateTokenFailed.Wrap(err, "fail to send invitation mail")
-	}
-
-	session := sessions.Default(c)
-	session.Set("id", createdUser.ID)
-	if err := session.Save(); err != nil {
-		return apperrors.SessionSaveFailed.Wrap(err, "failed to save session")
 	}
 
 	return nil
