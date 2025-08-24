@@ -45,31 +45,26 @@ func (ss *SessionService) SignUpService(c *gin.Context, signUpInfo dto.SignUpInf
 
 	user, err := ss.repository.CountByEmail(signUpInfo.Email)
 	if err != nil {
-		err = apperrors.GetDataFailed.Wrap(ErrNoData, "fail to get user by email")
-		return err
+		return apperrors.GetDataFailed.Wrap(ErrNoData, "fail to get user by email")
 	}
 	if user > 0 {
-		err = apperrors.DuplicateData.Wrap(ErrDuplicateData, "already exist user data")
-		return err
+		return apperrors.DuplicateData.Wrap(ErrDuplicateData, "already exist user data")
 	}
 
 	if signUpInfo.Password != signUpInfo.ConfirmPassword {
-		err = apperrors.GetDataFailed.Wrap(ErrMismatchData, "mismatch password and confirmPassword")
-		return err
+		return apperrors.GetDataFailed.Wrap(ErrMismatchData, "mismatch password and confirmPassword")
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(signUpInfo.Password), bcrypt.DefaultCost)
 	if err != nil {
-		err = apperrors.GetDataFailed.Wrap(err, "fail to generate has value from password")
-		return err
+		return apperrors.GetDataFailed.Wrap(err, "fail to generate has value from password")
 	}
 
 	err = ss.tx.Do(ctx, func(ctx context.Context) error {
 		// transaction適用
 		createdUser, err = ss.repository.CreateUser(ctx, signUpInfo.Email, hash)
 		if err != nil {
-			err = apperrors.InsertDataFailed.Wrap(err, "fail to insert user ")
-			return err
+			return apperrors.InsertDataFailed.Wrap(err, "fail to insert user ")
 		}
 
 		token, _ = common.GenerateSecureToken(32)
@@ -80,8 +75,7 @@ func (ss *SessionService) SignUpService(c *gin.Context, signUpInfo dto.SignUpInf
 		// transaction適用
 		_, err := ss.repository.CreateEmailVerifyToken(ctx, createdUser.ID, token, expiredAt)
 		if err != nil {
-			err = apperrors.InsertDataFailed.Wrap(err, "fail to insert emailVerifyToke")
-			return err
+			return apperrors.InsertDataFailed.Wrap(err, "fail to insert emailVerifyToke")
 		}
 		return nil
 
@@ -92,8 +86,7 @@ func (ss *SessionService) SignUpService(c *gin.Context, signUpInfo dto.SignUpInf
 
 	// --- トランザクション成功後にメール送信 ---
 	if err := common.SendMail(token, signUpInfo.Email); err != nil {
-		err = apperrors.GenerateTokenFailed.Wrap(err, "fail to send invitation mail")
-		return err
+		return apperrors.GenerateTokenFailed.Wrap(err, "fail to send invitation mail")
 	}
 
 	session := sessions.Default(c)
