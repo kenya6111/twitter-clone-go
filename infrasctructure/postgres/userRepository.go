@@ -57,15 +57,7 @@ func (ur *UserRepository) CountByEmail(email string) (int64, error) {
 }
 
 func (ur *UserRepository) CreateUser(c context.Context, email string, hash []byte) (*domain.User, error) {
-	// tx, err := pool.Begin(c)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer tx.Rollback(c)
 	q := ur.client.Querier(c)
-
-	// q := db.New(ur.client.pool)
-	// txQuery := q.WithTx(tx)
 	userInfo := db.CreateUserParams{
 		Name:     email,
 		Email:    email,
@@ -81,7 +73,6 @@ func (ur *UserRepository) CreateUser(c context.Context, email string, hash []byt
 }
 
 func (ur *UserRepository) CreateEmailVerifyToken(ctx context.Context, userId int32, token string, expiredAt pgtype.Timestamp) (*tutorial.EmailVerifyToken, error) {
-	// q := db.New(ur.client.pool)
 	q := ur.client.Querier(ctx)
 
 	verifyInfo := db.CreateEmailVerifyTokenParams{

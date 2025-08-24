@@ -46,6 +46,7 @@ func (ss *SessionService) SignUpService(c *gin.Context, signUpInfo dto.SignUpInf
 	if err != nil {
 		return apperrors.GetDataFailed.Wrap(ErrNoData, "fail to get user by email")
 	}
+
 	if user > 0 {
 		return apperrors.DuplicateData.Wrap(ErrDuplicateData, "already exist user data")
 	}
@@ -60,7 +61,6 @@ func (ss *SessionService) SignUpService(c *gin.Context, signUpInfo dto.SignUpInf
 	}
 
 	err = ss.tx.Do(ctx, func(ctx context.Context) error {
-		// transaction適用
 		createdUser, err = ss.repository.CreateUser(ctx, signUpInfo.Email, hash)
 		if err != nil {
 			return apperrors.InsertDataFailed.Wrap(err, "fail to insert user ")
@@ -71,19 +71,16 @@ func (ss *SessionService) SignUpService(c *gin.Context, signUpInfo dto.SignUpInf
 		expiredAt := pgtype.Timestamp{}
 		_ = expiredAt.Scan(time.Now())
 
-		// transaction適用
 		_, err := ss.repository.CreateEmailVerifyToken(ctx, createdUser.ID, token, expiredAt)
 		if err != nil {
 			return apperrors.InsertDataFailed.Wrap(err, "fail to insert emailVerifyToke")
 		}
 		return nil
-
 	})
 	if err != nil {
 		return err
 	}
 
-	// --- トランザクション成功後にメール送信 ---
 	if err := common.SendMail(token, signUpInfo.Email); err != nil {
 		return apperrors.GenerateTokenFailed.Wrap(err, "fail to send invitation mail")
 	}

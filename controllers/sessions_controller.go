@@ -46,21 +46,24 @@ func (sc *SessionController) SignUpHandler(c *gin.Context) {
 		apperrors.ErrorHandler(c, err)
 		return
 	}
+
 	if err := validations.ValidateSignUpInfo(signUpInfo); err != nil {
 		err = apperrors.ReqBodyDecodeFailed.Wrap(err, "bad request body")
 		apperrors.ErrorHandler(c, err)
 		return
 	}
 
-	signUpDto := dto.SignUpInfo{
-		Email:           signUpInfo.Email,
-		Password:        signUpInfo.Password,
-		ConfirmPassword: signUpInfo.ConfirmPassword,
-	}
-
-	if err := sc.service.SignUpService(c, signUpDto); err != nil {
+	if err := sc.service.SignUpService(c, sc.toSignUpDto(&signUpInfo)); err != nil {
 		apperrors.ErrorHandler(c, err)
 		return
 	}
 	response.SuccessResponse(c, nil)
+}
+
+func (u *SessionController) toSignUpDto(signUpInfo *request.SignUpInfo) dto.SignUpInfo {
+	return dto.SignUpInfo{
+		Email:           signUpInfo.Email,
+		Password:        signUpInfo.Password,
+		ConfirmPassword: signUpInfo.ConfirmPassword,
+	}
 }
