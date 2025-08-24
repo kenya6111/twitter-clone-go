@@ -29,7 +29,6 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - postgres:/var/lib/postgresql/data
-      - ./sql/init:/docker-entrypoint-initdb.d
     ports:
       - 5432:5432
     expose:
@@ -39,5 +38,17 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+  mailcatcher:
+    image: schickling/mailcatcher
+    container_name: mailcatcher
+    ports:
+      - "1080:1080"
+    networks:
+      - default
+      - twitter-clone-go_default #snowboardアプリのネットワーク名
 volumes:
   postgres:
+
+networks:
+  twitter-clone-go_default:
+    external: true
