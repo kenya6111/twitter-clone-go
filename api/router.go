@@ -20,12 +20,13 @@ func NewRouter(pool *pgxpool.Pool) *gin.Engine {
 	router := gin.Default()
 
 	repo := postgres.NewUserRepository(pool)
-	ser := usecase.NewSessionService(repo)
+	tx := postgres.NewTransaction(pool)
+	ser := usecase.NewSessionService(repo, tx)
 	con := controllers.NewSessionController(ser)
 
 	store := memstore.NewStore([]byte("secret"))
 
-	router.Use(sessions.Sessions("userInfo", store))
+	router.Use(sessions.Sessions("mySession", store))
 	router.GET("/", con.Home)
 	router.GET("/users", con.GetUserListHandler)
 	router.POST("/signup", con.SignUpHandler)

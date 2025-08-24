@@ -13,15 +13,15 @@ import (
 )
 
 type UserRepository struct {
-	pool *pgxpool.Pool
+	client *client
 }
 
 func NewUserRepository(pool *pgxpool.Pool) *UserRepository {
-	return &UserRepository{pool: pool}
+	return &UserRepository{&client{pool: pool}}
 }
 
 func (ur *UserRepository) FindAll() ([]domain.User, error) {
-	q := db.New(ur.pool)
+	q := db.New(ur.client.pool)
 	users, err := q.ListUsers(context.Background())
 	if err != nil {
 		log.Println(err)
@@ -36,7 +36,7 @@ func (ur *UserRepository) FindAll() ([]domain.User, error) {
 }
 
 func (ur *UserRepository) FindByEmail(email string) (*domain.User, error) {
-	q := db.New(ur.pool)
+	q := db.New(ur.client.pool)
 	user, err := q.GetUserByEmail(context.Background(), email)
 	if err != nil {
 		log.Println(err)
@@ -47,7 +47,7 @@ func (ur *UserRepository) FindByEmail(email string) (*domain.User, error) {
 }
 
 func (ur *UserRepository) CountByEmail(email string) (int64, error) {
-	q := db.New(ur.pool)
+	q := db.New(ur.client.pool)
 	resultNum, err := q.CountUsersByEmail(context.Background(), email)
 	if err != nil {
 		log.Println(err)
@@ -56,14 +56,22 @@ func (ur *UserRepository) CountByEmail(email string) (int64, error) {
 	return resultNum, nil
 }
 
-func (ur *UserRepository) CreateUser(email string, hash []byte) (*domain.User, error) {
-	q := db.New(ur.pool)
+func (ur *UserRepository) CreateUser(c context.Context, email string, hash []byte) (*domain.User, error) {
+	// tx, err := pool.Begin(c)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// defer tx.Rollback(c)
+	q := ur.client.Querier(c)
+
+	// q := db.New(ur.client.pool)
+	// txQuery := q.WithTx(tx)
 	userInfo := db.CreateUserParams{
 		Name:     email,
 		Email:    email,
 		Password: string(hash),
 	}
-	user, err := q.CreateUser(context.Background(), userInfo)
+	user, err := q.CreateUser(c, userInfo)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -72,15 +80,16 @@ func (ur *UserRepository) CreateUser(email string, hash []byte) (*domain.User, e
 	return &resultSet, nil
 }
 
-func (ur *UserRepository) CreateEmailVerifyToken(userId int32, token string, expiredAt pgtype.Timestamp) (*tutorial.EmailVerifyToken, error) {
-	q := db.New(ur.pool)
+func (ur *UserRepository) CreateEmailVerifyToken(ctx context.Context, userId int32, token string, expiredAt pgtype.Timestamp) (*tutorial.EmailVerifyToken, error) {
+	// q := db.New(ur.client.pool)
+	q := ur.client.Querier(ctx)
 
 	verifyInfo := db.CreateEmailVerifyTokenParams{
 		UserID:    userId,
 		Token:     token,
 		ExpiresAt: expiredAt,
 	}
-	resultSet, err := q.CreateEmailVerifyToken(context.Background(), verifyInfo)
+	resultSet, err := q.CreateEmailVerifyToken(ctx, verifyInfo)
 	if err != nil {
 		log.Println(err)
 		return nil, err

@@ -81,3 +81,8 @@ http://localhost:8080/health_check で"{status: ok}"のjsonが返るようにす
 - interface
 - 1 機能ごとに記事を書く
 - デバック
+
+- context
+- transaction
+- context.Context
+- transaction の client

@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"twitter-clone-go/tutorial"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -18,6 +19,6 @@ type UserRepository interface {
 	FindAll() ([]User, error)
 	FindByEmail(email string) (*User, error)
 	CountByEmail(email string) (int64, error)
-	CreateUser(email string, hash []byte) (*User, error)
-	CreateEmailVerifyToken(userId int32, token string, expiredAt pgtype.Timestamp) (*tutorial.EmailVerifyToken, error)
+	CreateUser(c context.Context, email string, hash []byte) (*User, error)
+	CreateEmailVerifyToken(ctx context.Context, userId int32, token string, expiredAt pgtype.Timestamp) (*tutorial.EmailVerifyToken, error)
 }
