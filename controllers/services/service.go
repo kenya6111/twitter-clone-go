@@ -1,8 +1,8 @@
 package services
 
 import (
+	"twitter-clone-go/application/user/dto"
 	domain "twitter-clone-go/domain/user"
-	"twitter-clone-go/usecase/dto"
 
 	"github.com/gin-gonic/gin"
 )

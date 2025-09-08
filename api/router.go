@@ -1,9 +1,9 @@
 package api
 
 import (
+	usecase "twitter-clone-go/application/user"
 	"twitter-clone-go/controllers"
 	"twitter-clone-go/infrasctructure/postgres"
-	"twitter-clone-go/usecase"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/memstore"

@@ -3,10 +3,10 @@ package controllers
 import (
 	"net/http"
 	"twitter-clone-go/apperrors"
+	"twitter-clone-go/application/user/dto"
 	"twitter-clone-go/controllers/services"
 	"twitter-clone-go/request"
 	"twitter-clone-go/response"
-	"twitter-clone-go/usecase/dto"
 	"twitter-clone-go/validations"
 
 	"github.com/gin-gonic/gin"

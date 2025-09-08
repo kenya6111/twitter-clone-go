@@ -3,10 +3,10 @@ package usecase
 import (
 	"context"
 	"twitter-clone-go/apperrors"
+	"twitter-clone-go/application/user/dto"
 	"twitter-clone-go/common"
 	domain "twitter-clone-go/domain/user"
 	"twitter-clone-go/infrasctructure/postgres"
-	"twitter-clone-go/usecase/dto"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
