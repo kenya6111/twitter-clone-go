@@ -31,7 +31,7 @@ func (sc *SessionController) HealthCheck(c *gin.Context) {
 }
 
 func (sc *SessionController) GetUserListHandler(c *gin.Context) {
-	users, err := sc.service.GetUserListService()
+	users, err := sc.service.GetUserList()
 	if err != nil {
 		apperrors.ErrorHandler(c, err)
 		return
@@ -53,7 +53,7 @@ func (sc *SessionController) SignUpHandler(c *gin.Context) {
 		return
 	}
 
-	if err := sc.service.SignUpService(c, sc.toSignUpDto(&signUpInfo)); err != nil {
+	if err := sc.service.SignUp(c, sc.toSignUpDto(&signUpInfo)); err != nil {
 		apperrors.ErrorHandler(c, err)
 		return
 	}

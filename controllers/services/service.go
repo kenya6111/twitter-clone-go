@@ -8,6 +8,6 @@ import (
 )
 
 type SessionServicer interface {
-	GetUserListService() ([]domain.User, error)
-	SignUpService(c *gin.Context, signUpInfo dto.SignUpInfo) error
+	GetUserList() ([]domain.User, error)
+	SignUp(c *gin.Context, signUpInfo dto.SignUpInfo) error
 }
