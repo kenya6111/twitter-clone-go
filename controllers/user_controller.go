@@ -3,11 +3,9 @@ package controllers
 import (
 	"net/http"
 	"twitter-clone-go/apperrors"
-	"twitter-clone-go/application/user/dto"
 	"twitter-clone-go/controllers/services"
 	"twitter-clone-go/request"
 	"twitter-clone-go/response"
-	"twitter-clone-go/validations"
 
 	"github.com/gin-gonic/gin"
 )
@@ -40,30 +38,15 @@ func (sc *UserController) GetUserListHandler(c *gin.Context) {
 }
 
 func (sc *UserController) SignUpHandler(c *gin.Context) {
-	var signUpInfo request.SignUpInfo
-	if err := c.BindJSON(&signUpInfo); err != nil {
+	var request request.SignUpInfo
+	if err := c.BindJSON(&request); err != nil {
 		err = apperrors.ReqBodyDecodeFailed.Wrap(err, "bad request body")
 		apperrors.ErrorHandler(c, err)
 		return
 	}
-
-	if err := validations.ValidateSignUpInfo(signUpInfo); err != nil {
-		err = apperrors.ReqBodyDecodeFailed.Wrap(err, "bad request body")
-		apperrors.ErrorHandler(c, err)
-		return
-	}
-
-	if err := sc.service.SignUp(c.Request.Context(), sc.toSignUpDto(&signUpInfo)); err != nil {
+	if err := sc.service.SignUp(c.Request.Context(), request); err != nil {
 		apperrors.ErrorHandler(c, err)
 		return
 	}
 	response.SuccessResponse(c, nil)
-}
-
-func (u *UserController) toSignUpDto(signUpInfo *request.SignUpInfo) dto.SignUpInfo {
-	return dto.SignUpInfo{
-		Email:           signUpInfo.Email,
-		Password:        signUpInfo.Password,
-		ConfirmPassword: signUpInfo.ConfirmPassword,
-	}
 }
