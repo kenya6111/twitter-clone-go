@@ -10,14 +10,14 @@ import (
 
 type EmailVerifyToken struct {
 	ID        int32
-	UserID    int32
+	UserID    string
 	Token     string
 	ExpiresAt pgtype.Timestamp
 	CreatedAt pgtype.Timestamp
 }
 
 type User struct {
-	ID       int32
+	ID       string
 	Name     string
 	Email    string
 	Password string

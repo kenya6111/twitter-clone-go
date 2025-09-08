@@ -33,7 +33,7 @@ RETURNING id, user_id, token, expires_at, created_at
 `
 
 type CreateEmailVerifyTokenParams struct {
-	UserID    int32
+	UserID    string
 	Token     string
 	ExpiresAt pgtype.Timestamp
 }
@@ -94,7 +94,7 @@ DELETE FROM users
 WHERE id = $1
 `
 
-func (q *Queries) DeleteUser(ctx context.Context, id int32) error {
+func (q *Queries) DeleteUser(ctx context.Context, id string) error {
 	_, err := q.db.Exec(ctx, deleteUser, id)
 	return err
 }
@@ -107,7 +107,7 @@ AND user_id = $2
 
 type GetEmailVerifyTokenParams struct {
 	Token  string
-	UserID int32
+	UserID string
 }
 
 func (q *Queries) GetEmailVerifyToken(ctx context.Context, arg GetEmailVerifyTokenParams) (EmailVerifyToken, error) {
@@ -128,7 +128,7 @@ SELECT id, name, email, password, is_active FROM users
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetUser(ctx context.Context, id int32) (User, error) {
+func (q *Queries) GetUser(ctx context.Context, id string) (User, error) {
 	row := q.db.QueryRow(ctx, getUser, id)
 	var i User
 	err := row.Scan(
@@ -198,7 +198,7 @@ RETURNING id, name, email, password, is_active
 `
 
 type UpdateUserParams struct {
-	ID       int32
+	ID       string
 	IsActive pgtype.Bool
 }
 

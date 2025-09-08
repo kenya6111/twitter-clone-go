@@ -6,7 +6,7 @@ import (
 
 type EmailVerifyToken struct {
 	ID        int32
-	UserID    int32
+	UserID    string
 	Token     string
 	ExpiresAt time.Time
 	CreatedAt time.Time
