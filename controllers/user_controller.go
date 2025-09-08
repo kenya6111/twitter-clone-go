@@ -53,7 +53,7 @@ func (sc *UserController) SignUpHandler(c *gin.Context) {
 		return
 	}
 
-	if err := sc.service.SignUp(c, sc.toSignUpDto(&signUpInfo)); err != nil {
+	if err := sc.service.SignUp(c.Request.Context(), sc.toSignUpDto(&signUpInfo)); err != nil {
 		apperrors.ErrorHandler(c, err)
 		return
 	}

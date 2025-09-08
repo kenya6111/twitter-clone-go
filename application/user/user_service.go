@@ -8,7 +8,6 @@ import (
 	domain "twitter-clone-go/domain/user"
 	"twitter-clone-go/infrasctructure/postgres"
 
-	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -35,8 +34,7 @@ func (ss *UserService) GetUserList() ([]domain.User, error) {
 	return users, nil
 }
 
-func (ss *UserService) SignUp(c *gin.Context, signUpInfo dto.SignUpInfo) error {
-	ctx := c.Request.Context()
+func (ss *UserService) SignUp(ctx context.Context, signUpInfo dto.SignUpInfo) error {
 	var token string
 	var createdUser *domain.User
 
