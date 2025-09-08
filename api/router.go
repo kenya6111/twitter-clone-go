@@ -21,7 +21,8 @@ func NewRouter(pool *pgxpool.Pool) *gin.Engine {
 
 	repo := postgres.NewUserRepository(pool)
 	tx := postgres.NewTransaction(pool)
-	ser := usecase.NewUserService(repo, tx)
+	dSer := postgres.NewUserDomainService(repo)
+	ser := usecase.NewUserService(repo, tx, dSer)
 	con := controllers.NewUserController(ser)
 
 	store := memstore.NewStore([]byte("secret"))
