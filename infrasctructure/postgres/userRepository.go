@@ -3,8 +3,8 @@ package postgres
 import (
 	"context"
 	"log"
+	"time"
 	domain "twitter-clone-go/domain/user"
-	"twitter-clone-go/tutorial"
 
 	db "twitter-clone-go/tutorial"
 
@@ -30,7 +30,7 @@ func (ur *UserRepository) FindAll() ([]domain.User, error) {
 
 	resultSets := make([]domain.User, 0, len(users))
 	for _, u := range users {
-		resultSets = append(resultSets, ur.adapt(&u))
+		resultSets = append(resultSets, ur.toUserDomain(&u))
 	}
 	return resultSets, nil
 }
@@ -42,7 +42,7 @@ func (ur *UserRepository) FindByEmail(email string) (*domain.User, error) {
 		log.Println(err)
 		return nil, err
 	}
-	resultSet := ur.adapt(&user)
+	resultSet := ur.toUserDomain(&user)
 	return &resultSet, nil
 }
 
@@ -68,32 +68,44 @@ func (ur *UserRepository) CreateUser(c context.Context, email string, hash []byt
 		log.Println(err)
 		return nil, err
 	}
-	resultSet := ur.adapt(&user)
+	resultSet := ur.toUserDomain(&user)
 	return &resultSet, nil
 }
 
-func (ur *UserRepository) CreateEmailVerifyToken(ctx context.Context, userId int32, token string, expiredAt pgtype.Timestamp) (*tutorial.EmailVerifyToken, error) {
+func (ur *UserRepository) CreateEmailVerifyToken(ctx context.Context, userId int32, token string) (*domain.EmailVerifyToken, error) {
 	q := ur.client.Querier(ctx)
+	expiredAt := pgtype.Timestamp{}
+	_ = expiredAt.Scan(time.Now().Add(24 * time.Hour * 7))
 
-	verifyInfo := db.CreateEmailVerifyTokenParams{
+	args := db.CreateEmailVerifyTokenParams{
 		UserID:    userId,
 		Token:     token,
 		ExpiresAt: expiredAt,
 	}
-	resultSet, err := q.CreateEmailVerifyToken(ctx, verifyInfo)
+	resultSet, err := q.CreateEmailVerifyToken(ctx, args)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	return &resultSet, nil
+	emailVerifyToken := ur.toEmailVerifyTokenDomain(&resultSet)
+	return &emailVerifyToken, nil
 }
 
-func (u *UserRepository) adapt(in *db.User) domain.User {
+func (u *UserRepository) toUserDomain(in *db.User) domain.User {
 	return domain.User{
 		ID:       in.ID,
 		Name:     in.Name,
 		Email:    in.Email,
 		Password: in.Password,
-		IsActive: in.IsActive,
+		IsActive: in.IsActive.Bool,
+	}
+}
+func (u *UserRepository) toEmailVerifyTokenDomain(in *db.EmailVerifyToken) domain.EmailVerifyToken {
+	return domain.EmailVerifyToken{
+		ID:        in.ID,
+		UserID:    in.UserID,
+		Token:     in.Token,
+		ExpiresAt: in.ExpiresAt.Time,
+		CreatedAt: in.CreatedAt.Time,
 	}
 }
