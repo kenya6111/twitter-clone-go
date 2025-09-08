@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type SessionServicer interface {
+type UserServicer interface {
 	GetUserList() ([]domain.User, error)
 	SignUp(c *gin.Context, signUpInfo dto.SignUpInfo) error
 }

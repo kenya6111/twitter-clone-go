@@ -12,25 +12,25 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type SessionController struct {
-	service services.SessionServicer
+type UserController struct {
+	service services.UserServicer
 }
 
-func NewSessionController(s services.SessionServicer) *SessionController {
-	return &SessionController{service: s}
+func NewUserController(s services.UserServicer) *UserController {
+	return &UserController{service: s}
 }
 
-func (sc *SessionController) Home(c *gin.Context) {
+func (sc *UserController) Home(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{"message": "Hello World!"})
 }
 
-func (sc *SessionController) HealthCheck(c *gin.Context) {
+func (sc *UserController) HealthCheck(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"status": "ok",
 	})
 }
 
-func (sc *SessionController) GetUserListHandler(c *gin.Context) {
+func (sc *UserController) GetUserListHandler(c *gin.Context) {
 	users, err := sc.service.GetUserList()
 	if err != nil {
 		apperrors.ErrorHandler(c, err)
@@ -39,7 +39,7 @@ func (sc *SessionController) GetUserListHandler(c *gin.Context) {
 	response.SuccessResponse(c, users)
 }
 
-func (sc *SessionController) SignUpHandler(c *gin.Context) {
+func (sc *UserController) SignUpHandler(c *gin.Context) {
 	var signUpInfo request.SignUpInfo
 	if err := c.BindJSON(&signUpInfo); err != nil {
 		err = apperrors.ReqBodyDecodeFailed.Wrap(err, "bad request body")
@@ -60,7 +60,7 @@ func (sc *SessionController) SignUpHandler(c *gin.Context) {
 	response.SuccessResponse(c, nil)
 }
 
-func (u *SessionController) toSignUpDto(signUpInfo *request.SignUpInfo) dto.SignUpInfo {
+func (u *UserController) toSignUpDto(signUpInfo *request.SignUpInfo) dto.SignUpInfo {
 	return dto.SignUpInfo{
 		Email:           signUpInfo.Email,
 		Password:        signUpInfo.Password,

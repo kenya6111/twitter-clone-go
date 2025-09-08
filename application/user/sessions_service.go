@@ -12,16 +12,16 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type SessionService struct {
+type UserService struct {
 	repository *postgres.UserRepository
 	tx         *postgres.Transaction
 }
 
-func NewSessionService(r *postgres.UserRepository, tx *postgres.Transaction) *SessionService {
-	return &SessionService{repository: r, tx: tx}
+func NewUserService(r *postgres.UserRepository, tx *postgres.Transaction) *UserService {
+	return &UserService{repository: r, tx: tx}
 }
 
-func (ss *SessionService) GetUserList() ([]domain.User, error) {
+func (ss *UserService) GetUserList() ([]domain.User, error) {
 	users, err := ss.repository.FindAll()
 	if err != nil {
 		err = apperrors.GetDataFailed.Wrap(err, "fail to get users data")
@@ -35,7 +35,7 @@ func (ss *SessionService) GetUserList() ([]domain.User, error) {
 	return users, nil
 }
 
-func (ss *SessionService) SignUp(c *gin.Context, signUpInfo dto.SignUpInfo) error {
+func (ss *UserService) SignUp(c *gin.Context, signUpInfo dto.SignUpInfo) error {
 	ctx := c.Request.Context()
 	var token string
 	var createdUser *domain.User
