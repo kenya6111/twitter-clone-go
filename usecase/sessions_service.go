@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"time"
 	"twitter-clone-go/apperrors"
 	"twitter-clone-go/common"
 	domain "twitter-clone-go/domain/user"
@@ -10,20 +9,19 @@ import (
 	"twitter-clone-go/usecase/dto"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type SessionService struct {
-	repository domain.UserRepository
+	repository *postgres.UserRepository
 	tx         *postgres.Transaction
 }
 
-func NewSessionService(r domain.UserRepository, tx *postgres.Transaction) *SessionService {
+func NewSessionService(r *postgres.UserRepository, tx *postgres.Transaction) *SessionService {
 	return &SessionService{repository: r, tx: tx}
 }
 
-func (ss *SessionService) GetUserListService() ([]domain.User, error) {
+func (ss *SessionService) GetUserList() ([]domain.User, error) {
 	users, err := ss.repository.FindAll()
 	if err != nil {
 		err = apperrors.GetDataFailed.Wrap(err, "fail to get users data")
@@ -37,7 +35,7 @@ func (ss *SessionService) GetUserListService() ([]domain.User, error) {
 	return users, nil
 }
 
-func (ss *SessionService) SignUpService(c *gin.Context, signUpInfo dto.SignUpInfo) error {
+func (ss *SessionService) SignUp(c *gin.Context, signUpInfo dto.SignUpInfo) error {
 	ctx := c.Request.Context()
 	var token string
 	var createdUser *domain.User
@@ -68,12 +66,9 @@ func (ss *SessionService) SignUpService(c *gin.Context, signUpInfo dto.SignUpInf
 
 		token, _ = common.GenerateSecureToken(32)
 
-		expiredAt := pgtype.Timestamp{}
-		_ = expiredAt.Scan(time.Now())
-
-		_, err := ss.repository.CreateEmailVerifyToken(ctx, createdUser.ID, token, expiredAt)
+		_, err := ss.repository.CreateEmailVerifyToken(ctx, createdUser.ID, token)
 		if err != nil {
-			return apperrors.InsertDataFailed.Wrap(err, "fail to insert emailVerifyToke")
+			return apperrors.InsertDataFailed.Wrap(err, "fail to insert emailVerifyToken")
 		}
 		return nil
 	})
