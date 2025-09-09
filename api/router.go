@@ -2,8 +2,8 @@ package api
 
 import (
 	usecase "twitter-clone-go/application/user"
-	"twitter-clone-go/controllers"
 	"twitter-clone-go/infrasctructure/postgres"
+	presentation "twitter-clone-go/presentation/user"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/memstore"
@@ -23,7 +23,7 @@ func NewRouter(pool *pgxpool.Pool) *gin.Engine {
 	tx := postgres.NewTransaction(pool)
 	dSer := postgres.NewUserDomainService(repo)
 	ser := usecase.NewUserService(repo, tx, dSer)
-	con := controllers.NewUserController(ser)
+	con := presentation.NewUserController(ser)
 
 	store := memstore.NewStore([]byte("secret"))
 

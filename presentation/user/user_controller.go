@@ -1,9 +1,9 @@
-package controllers
+package presentation
 
 import (
 	"net/http"
 	"twitter-clone-go/apperrors"
-	"twitter-clone-go/controllers/services"
+	"twitter-clone-go/presentation/user/services"
 	"twitter-clone-go/request"
 	"twitter-clone-go/response"
 
