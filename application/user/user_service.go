@@ -5,7 +5,6 @@ import (
 	"twitter-clone-go/apperrors"
 	"twitter-clone-go/common"
 	domain "twitter-clone-go/domain/user"
-	"twitter-clone-go/infrasctructure/postgres"
 	"twitter-clone-go/request"
 
 	"golang.org/x/crypto/bcrypt"
@@ -17,7 +16,7 @@ type UserService struct {
 	dSer domain.UserDomainService
 }
 
-func NewUserService(r domain.UserRepository, tx *postgres.Transaction, dSer domain.UserDomainService) *UserService {
+func NewUserService(r domain.UserRepository, tx domain.Transaction, dSer domain.UserDomainService) *UserService {
 	return &UserService{repo: r, tx: tx, dSer: dSer}
 }
 
