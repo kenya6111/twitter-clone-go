@@ -12,13 +12,13 @@ import (
 )
 
 type UserService struct {
-	repo *postgres.UserRepository
-	tx   *postgres.Transaction
-	dSer *postgres.UserDomainService
+	repo domain.UserRepository
+	tx   domain.Transaction
+	dSer domain.UserDomainService
 }
 
-func NewUserService(r *postgres.UserRepository, tx *postgres.Transaction, dSer domain.UserDomainService) *UserService {
-	return &UserService{repo: r, tx: tx}
+func NewUserService(r domain.UserRepository, tx *postgres.Transaction, dSer domain.UserDomainService) *UserService {
+	return &UserService{repo: r, tx: tx, dSer: dSer}
 }
 
 func (ss *UserService) GetUserList() ([]domain.User, error) {
