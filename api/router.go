@@ -4,7 +4,7 @@ import (
 	application "twitter-clone-go/application/user"
 	"twitter-clone-go/infrasctructure/email/mailcatcher"
 	"twitter-clone-go/infrasctructure/storage/postgres"
-	presentation "twitter-clone-go/presentation/user"
+	"twitter-clone-go/interface/http"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/memstore"
@@ -25,7 +25,7 @@ func NewRouter(pool *pgxpool.Pool) *gin.Engine {
 	tx := postgres.NewTransaction(pool)
 	dSer := postgres.NewUserDomainService(repo)
 	ser := application.NewUserUsecase(repo, tx, dSer, emailService)
-	con := presentation.NewUserHandler(ser)
+	con := http.NewUserHandler(ser)
 
 	store := memstore.NewStore([]byte("secret"))
 
