@@ -12,18 +12,18 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UserService struct {
+type UserUsecase struct {
 	repo         userDomain.UserRepository
 	tx           domain.Transaction
 	dSer         userDomain.UserDomainService
 	emailService service.EmailService
 }
 
-func NewUserService(r userDomain.UserRepository, tx domain.Transaction, dSer userDomain.UserDomainService, emailService service.EmailService) *UserService {
-	return &UserService{repo: r, tx: tx, dSer: dSer, emailService: emailService}
+func NewUserUsecase(r userDomain.UserRepository, tx domain.Transaction, dSer userDomain.UserDomainService, emailService service.EmailService) *UserUsecase {
+	return &UserUsecase{repo: r, tx: tx, dSer: dSer, emailService: emailService}
 }
 
-func (ss *UserService) GetUserList() ([]userDomain.User, error) {
+func (ss *UserUsecase) GetUserList() ([]userDomain.User, error) {
 	users, err := ss.repo.FindAll()
 	if err != nil {
 		err = apperrors.GetDataFailed.Wrap(err, "fail to get users data")
@@ -32,7 +32,7 @@ func (ss *UserService) GetUserList() ([]userDomain.User, error) {
 	return users, nil
 }
 
-func (us *UserService) SignUp(ctx context.Context, request request.SignUpInfo) error {
+func (us *UserUsecase) SignUp(ctx context.Context, request request.SignUpInfo) error {
 	var token string
 	var createdUser *userDomain.User
 
