@@ -15,18 +15,18 @@ func NewUserHandler(u application.UserUsecase) *UserHandler {
 	return &UserHandler{usecase: u}
 }
 
-func (sc *UserHandler) Home(c *gin.Context) {
+func (h *UserHandler) Home(c *gin.Context) {
 	c.IndentedJSON(200, gin.H{"message": "Hello World!"})
 }
 
-func (sc *UserHandler) HealthCheck(c *gin.Context) {
+func (h *UserHandler) HealthCheck(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"status": "ok",
 	})
 }
 
-func (sc *UserHandler) GetUserListHandler(c *gin.Context) {
-	users, err := sc.usecase.GetUserList()
+func (h *UserHandler) GetUserListHandler(c *gin.Context) {
+	users, err := h.usecase.GetUserList()
 	if err != nil {
 		ErrorHandler(c, err)
 		return
@@ -34,14 +34,14 @@ func (sc *UserHandler) GetUserListHandler(c *gin.Context) {
 	SuccessResponse(c, users)
 }
 
-func (sc *UserHandler) SignUpHandler(c *gin.Context) {
+func (h *UserHandler) SignUpHandler(c *gin.Context) {
 	var request application.SignUpInfo
 	if err := c.BindJSON(&request); err != nil {
 		err = apperrors.ReqBodyDecodeFailed.Wrap(err, "bad request body")
 		ErrorHandler(c, err)
 		return
 	}
-	if err := sc.usecase.SignUp(c.Request.Context(), request); err != nil {
+	if err := h.usecase.SignUp(c.Request.Context(), request); err != nil {
 		ErrorHandler(c, err)
 		return
 	}
