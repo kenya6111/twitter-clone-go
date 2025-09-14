@@ -5,6 +5,7 @@ import (
 	"twitter-clone-go/apperrors"
 	"twitter-clone-go/common"
 	domain "twitter-clone-go/domain"
+	"twitter-clone-go/domain/service"
 	userDomain "twitter-clone-go/domain/user"
 	"twitter-clone-go/request"
 
@@ -12,13 +13,14 @@ import (
 )
 
 type UserService struct {
-	repo userDomain.UserRepository
-	tx   domain.Transaction
-	dSer userDomain.UserDomainService
+	repo         userDomain.UserRepository
+	tx           domain.Transaction
+	dSer         userDomain.UserDomainService
+	emailService service.EmailService
 }
 
-func NewUserService(r userDomain.UserRepository, tx domain.Transaction, dSer userDomain.UserDomainService) *UserService {
-	return &UserService{repo: r, tx: tx, dSer: dSer}
+func NewUserService(r userDomain.UserRepository, tx domain.Transaction, dSer userDomain.UserDomainService, emailService service.EmailService) *UserService {
+	return &UserService{repo: r, tx: tx, dSer: dSer, emailService: emailService}
 }
 
 func (ss *UserService) GetUserList() ([]userDomain.User, error) {
@@ -65,7 +67,7 @@ func (us *UserService) SignUp(ctx context.Context, request request.SignUpInfo) e
 		return err
 	}
 
-	if err := common.SendMail(token, user.Email); err != nil {
+	if err := us.emailService.SendInvitationEmail(token, user.Email); err != nil {
 		return apperrors.GenerateTokenFailed.Wrap(err, "fail to send invitation mail")
 	}
 
