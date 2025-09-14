@@ -33,8 +33,8 @@ func NewUserUsecase(r userDomain.UserRepository, tx domain.Transaction, dSer use
 	return &UserUsecaseImpl{repo: r, tx: tx, dSer: dSer, emailService: emailService}
 }
 
-func (ss *UserUsecaseImpl) GetUserList() ([]userDomain.User, error) {
-	users, err := ss.repo.FindAll()
+func (u *UserUsecaseImpl) GetUserList() ([]userDomain.User, error) {
+	users, err := u.repo.FindAll()
 	if err != nil {
 		err = apperrors.GetDataFailed.Wrap(err, "fail to get users data")
 		return nil, err
@@ -42,7 +42,7 @@ func (ss *UserUsecaseImpl) GetUserList() ([]userDomain.User, error) {
 	return users, nil
 }
 
-func (us *UserUsecaseImpl) SignUp(ctx context.Context, request SignUpInfo) error {
+func (u *UserUsecaseImpl) SignUp(ctx context.Context, request SignUpInfo) error {
 	var token string
 	var createdUser *userDomain.User
 
@@ -50,7 +50,7 @@ func (us *UserUsecaseImpl) SignUp(ctx context.Context, request SignUpInfo) error
 	if err != nil {
 		return err
 	}
-	if err := us.dSer.IsDuplicatedEmail(user.Email); err != nil {
+	if err := u.dSer.IsDuplicatedEmail(user.Email); err != nil {
 		return err
 	}
 
@@ -59,15 +59,15 @@ func (us *UserUsecaseImpl) SignUp(ctx context.Context, request SignUpInfo) error
 		return apperrors.GetDataFailed.Wrap(err, "fail to generate has value from password")
 	}
 
-	err = us.tx.Do(ctx, func(ctx context.Context) error {
-		createdUser, err = us.repo.CreateUser(ctx, user.Email, hash)
+	err = u.tx.Do(ctx, func(ctx context.Context) error {
+		createdUser, err = u.repo.CreateUser(ctx, user.Email, hash)
 		if err != nil {
 			return apperrors.InsertDataFailed.Wrap(err, "fail to insert user ")
 		}
 
 		token, _ = crypt.GenerateSecureToken(32)
 
-		_, err := us.repo.CreateEmailVerifyToken(ctx, createdUser.ID, token)
+		_, err := u.repo.CreateEmailVerifyToken(ctx, createdUser.ID, token)
 		if err != nil {
 			return apperrors.InsertDataFailed.Wrap(err, "fail to insert emailVerifyToken")
 		}
@@ -77,7 +77,7 @@ func (us *UserUsecaseImpl) SignUp(ctx context.Context, request SignUpInfo) error
 		return err
 	}
 
-	if err := us.emailService.SendInvitationEmail(token, user.Email); err != nil {
+	if err := u.emailService.SendInvitationEmail(token, user.Email); err != nil {
 		return apperrors.GenerateTokenFailed.Wrap(err, "fail to send invitation mail")
 	}
 
