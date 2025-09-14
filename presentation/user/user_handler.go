@@ -2,8 +2,8 @@ package presentation
 
 import (
 	"twitter-clone-go/apperrors"
+	application "twitter-clone-go/application/user"
 	"twitter-clone-go/interface/http"
-	"twitter-clone-go/presentation/user/services"
 	"twitter-clone-go/request"
 	"twitter-clone-go/response"
 
@@ -11,11 +11,11 @@ import (
 )
 
 type UserHandler struct {
-	service services.UserServicer
+	usecase application.UserUsecase
 }
 
-func NewUserHandler(s services.UserServicer) *UserHandler {
-	return &UserHandler{service: s}
+func NewUserHandler(u application.UserUsecase) *UserHandler {
+	return &UserHandler{usecase: u}
 }
 
 func (sc *UserHandler) Home(c *gin.Context) {
@@ -29,7 +29,7 @@ func (sc *UserHandler) HealthCheck(c *gin.Context) {
 }
 
 func (sc *UserHandler) GetUserListHandler(c *gin.Context) {
-	users, err := sc.service.GetUserList()
+	users, err := sc.usecase.GetUserList()
 	if err != nil {
 		http.ErrorHandler(c, err)
 		return
@@ -44,7 +44,7 @@ func (sc *UserHandler) SignUpHandler(c *gin.Context) {
 		http.ErrorHandler(c, err)
 		return
 	}
-	if err := sc.service.SignUp(c.Request.Context(), request); err != nil {
+	if err := sc.usecase.SignUp(c.Request.Context(), request); err != nil {
 		http.ErrorHandler(c, err)
 		return
 	}

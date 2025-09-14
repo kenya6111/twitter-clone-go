@@ -1,4 +1,4 @@
-package usecase
+package application
 
 import (
 	"context"
@@ -12,18 +12,22 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UserUsecase struct {
+type UserUsecaseImpl struct {
 	repo         userDomain.UserRepository
 	tx           domain.Transaction
 	dSer         userDomain.UserDomainService
 	emailService service.EmailService
 }
-
-func NewUserUsecase(r userDomain.UserRepository, tx domain.Transaction, dSer userDomain.UserDomainService, emailService service.EmailService) *UserUsecase {
-	return &UserUsecase{repo: r, tx: tx, dSer: dSer, emailService: emailService}
+type UserUsecase interface {
+	GetUserList() ([]userDomain.User, error)
+	SignUp(c context.Context, signUpInfo request.SignUpInfo) error
 }
 
-func (ss *UserUsecase) GetUserList() ([]userDomain.User, error) {
+func NewUserUsecase(r userDomain.UserRepository, tx domain.Transaction, dSer userDomain.UserDomainService, emailService service.EmailService) *UserUsecaseImpl {
+	return &UserUsecaseImpl{repo: r, tx: tx, dSer: dSer, emailService: emailService}
+}
+
+func (ss *UserUsecaseImpl) GetUserList() ([]userDomain.User, error) {
 	users, err := ss.repo.FindAll()
 	if err != nil {
 		err = apperrors.GetDataFailed.Wrap(err, "fail to get users data")
@@ -32,7 +36,7 @@ func (ss *UserUsecase) GetUserList() ([]userDomain.User, error) {
 	return users, nil
 }
 
-func (us *UserUsecase) SignUp(ctx context.Context, request request.SignUpInfo) error {
+func (us *UserUsecaseImpl) SignUp(ctx context.Context, request request.SignUpInfo) error {
 	var token string
 	var createdUser *userDomain.User
 

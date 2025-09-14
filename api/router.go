@@ -1,7 +1,7 @@
 package api
 
 import (
-	usecase "twitter-clone-go/application/user"
+	application "twitter-clone-go/application/user"
 	"twitter-clone-go/infrasctructure/email/mailcatcher"
 	"twitter-clone-go/infrasctructure/storage/postgres"
 	presentation "twitter-clone-go/presentation/user"
@@ -24,7 +24,7 @@ func NewRouter(pool *pgxpool.Pool) *gin.Engine {
 	repo := postgres.NewUserRepository(pool)
 	tx := postgres.NewTransaction(pool)
 	dSer := postgres.NewUserDomainService(repo)
-	ser := usecase.NewUserUsecase(repo, tx, dSer, emailService)
+	ser := application.NewUserUsecase(repo, tx, dSer, emailService)
 	con := presentation.NewUserHandler(ser)
 
 	store := memstore.NewStore([]byte("secret"))
