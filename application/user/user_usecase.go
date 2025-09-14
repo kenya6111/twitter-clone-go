@@ -3,7 +3,7 @@ package application
 import (
 	"context"
 	"twitter-clone-go/apperrors"
-	domain "twitter-clone-go/domain"
+	"twitter-clone-go/domain"
 	"twitter-clone-go/domain/service"
 	userDomain "twitter-clone-go/domain/user"
 	"twitter-clone-go/pkg/crypt"
