@@ -1,9 +1,8 @@
-package presentation
+package http
 
 import (
 	"twitter-clone-go/apperrors"
 	application "twitter-clone-go/application/user"
-	"twitter-clone-go/interface/http"
 	"twitter-clone-go/request"
 	"twitter-clone-go/response"
 
@@ -31,7 +30,7 @@ func (sc *UserHandler) HealthCheck(c *gin.Context) {
 func (sc *UserHandler) GetUserListHandler(c *gin.Context) {
 	users, err := sc.usecase.GetUserList()
 	if err != nil {
-		http.ErrorHandler(c, err)
+		ErrorHandler(c, err)
 		return
 	}
 	response.SuccessResponse(c, users)
@@ -41,11 +40,11 @@ func (sc *UserHandler) SignUpHandler(c *gin.Context) {
 	var request request.SignUpInfo
 	if err := c.BindJSON(&request); err != nil {
 		err = apperrors.ReqBodyDecodeFailed.Wrap(err, "bad request body")
-		http.ErrorHandler(c, err)
+		ErrorHandler(c, err)
 		return
 	}
 	if err := sc.usecase.SignUp(c.Request.Context(), request); err != nil {
-		http.ErrorHandler(c, err)
+		ErrorHandler(c, err)
 		return
 	}
 	response.SuccessResponse(c, nil)
