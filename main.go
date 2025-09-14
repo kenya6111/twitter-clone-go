@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"twitter-clone-go/api"
-	"twitter-clone-go/infrasctructure/postgres"
+	"twitter-clone-go/infrasctructure/storage/postgres"
 
 	_ "github.com/lib/pq"
 )
