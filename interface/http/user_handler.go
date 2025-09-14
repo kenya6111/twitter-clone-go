@@ -3,7 +3,6 @@ package http
 import (
 	"twitter-clone-go/apperrors"
 	application "twitter-clone-go/application/user"
-	"twitter-clone-go/response"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,7 +31,7 @@ func (sc *UserHandler) GetUserListHandler(c *gin.Context) {
 		ErrorHandler(c, err)
 		return
 	}
-	response.SuccessResponse(c, users)
+	SuccessResponse(c, users)
 }
 
 func (sc *UserHandler) SignUpHandler(c *gin.Context) {
@@ -46,5 +45,5 @@ func (sc *UserHandler) SignUpHandler(c *gin.Context) {
 		ErrorHandler(c, err)
 		return
 	}
-	response.SuccessResponse(c, nil)
+	SuccessResponse(c, nil)
 }
