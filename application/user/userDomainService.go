@@ -1,14 +1,15 @@
-package postgres
+package application
 
 import (
 	"twitter-clone-go/apperrors"
+	domain "twitter-clone-go/domain/user"
 )
 
 type UserDomainService struct {
-	repo *UserRepository
+	repo domain.UserRepository
 }
 
-func NewUserDomainService(r *UserRepository) *UserDomainService {
+func NewUserDomainService(r domain.UserRepository) *UserDomainService {
 	return &UserDomainService{repo: r}
 }
 

@@ -23,7 +23,7 @@ func NewRouter(pool *pgxpool.Pool) *gin.Engine {
 	var emailService = mailcatcher.NewMainCatcherEmailService("test")
 	repo := postgres.NewUserRepository(pool)
 	tx := postgres.NewTransaction(pool)
-	dSer := postgres.NewUserDomainService(repo)
+	dSer := application.NewUserDomainService(repo)
 	ser := application.NewUserUsecase(repo, tx, dSer, emailService)
 	con := http.NewUserHandler(ser)
 
