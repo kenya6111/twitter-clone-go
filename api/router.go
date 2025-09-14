@@ -2,9 +2,8 @@ package api
 
 import (
 	usecase "twitter-clone-go/application/user"
-	"twitter-clone-go/domain/service"
 	"twitter-clone-go/infrasctructure/email/mailcatcher"
-	"twitter-clone-go/infrasctructure/postgres"
+	"twitter-clone-go/infrasctructure/storage/postgres"
 	presentation "twitter-clone-go/presentation/user"
 
 	"github.com/gin-contrib/sessions"
@@ -21,9 +20,7 @@ func Run(pool *pgxpool.Pool) {
 func NewRouter(pool *pgxpool.Pool) *gin.Engine {
 	router := gin.Default()
 
-	var emailService service.EmailService
-	emailService = mailcatcher.NewMainCatcherEmailService("test")
-
+	var emailService = mailcatcher.NewMainCatcherEmailService("test")
 	repo := postgres.NewUserRepository(pool)
 	tx := postgres.NewTransaction(pool)
 	dSer := postgres.NewUserDomainService(repo)
