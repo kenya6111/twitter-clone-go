@@ -4,31 +4,27 @@ import (
 	"context"
 	"twitter-clone-go/apperrors"
 	"twitter-clone-go/common"
-	domain "twitter-clone-go/domain/user"
+	domain "twitter-clone-go/domain"
+	userDomain "twitter-clone-go/domain/user"
 	"twitter-clone-go/request"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
-	repo domain.UserRepository
+	repo userDomain.UserRepository
 	tx   domain.Transaction
-	dSer domain.UserDomainService
+	dSer userDomain.UserDomainService
 }
 
-func NewUserService(r domain.UserRepository, tx domain.Transaction, dSer domain.UserDomainService) *UserService {
+func NewUserService(r userDomain.UserRepository, tx domain.Transaction, dSer userDomain.UserDomainService) *UserService {
 	return &UserService{repo: r, tx: tx, dSer: dSer}
 }
 
-func (ss *UserService) GetUserList() ([]domain.User, error) {
+func (ss *UserService) GetUserList() ([]userDomain.User, error) {
 	users, err := ss.repo.FindAll()
 	if err != nil {
 		err = apperrors.GetDataFailed.Wrap(err, "fail to get users data")
-		return nil, err
-	}
-
-	if len(users) == 0 {
-		err = apperrors.NAData.Wrap(apperrors.ErrNoData, "no data")
 		return nil, err
 	}
 	return users, nil
@@ -36,9 +32,9 @@ func (ss *UserService) GetUserList() ([]domain.User, error) {
 
 func (us *UserService) SignUp(ctx context.Context, request request.SignUpInfo) error {
 	var token string
-	var createdUser *domain.User
+	var createdUser *userDomain.User
 
-	user, err := domain.NewUser(request.Email, request.Password, request.ConfirmPassword)
+	user, err := userDomain.NewUser(request.Name, request.Email, request.Password, request.ConfirmPassword)
 	if err != nil {
 		return err
 	}
