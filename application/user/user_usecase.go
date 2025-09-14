@@ -7,10 +7,16 @@ import (
 	"twitter-clone-go/domain/service"
 	userDomain "twitter-clone-go/domain/user"
 	"twitter-clone-go/pkg/crypt"
-	"twitter-clone-go/request"
 
 	"golang.org/x/crypto/bcrypt"
 )
+
+type SignUpInfo struct {
+	Name            string `validate:"required"`
+	Email           string `validate:"required,email"`
+	Password        string `validate:"required,gte=8,has_kigou,has_han_su,has_lower_ei,has_upper_ei"`
+	ConfirmPassword string `validate:"required,gte=8,has_kigou,has_han_su,has_lower_ei,has_upper_ei"`
+}
 
 type UserUsecaseImpl struct {
 	repo         userDomain.UserRepository
@@ -20,7 +26,7 @@ type UserUsecaseImpl struct {
 }
 type UserUsecase interface {
 	GetUserList() ([]userDomain.User, error)
-	SignUp(c context.Context, signUpInfo request.SignUpInfo) error
+	SignUp(c context.Context, signUpInfo SignUpInfo) error
 }
 
 func NewUserUsecase(r userDomain.UserRepository, tx domain.Transaction, dSer userDomain.UserDomainService, emailService service.EmailService) *UserUsecaseImpl {
@@ -36,7 +42,7 @@ func (ss *UserUsecaseImpl) GetUserList() ([]userDomain.User, error) {
 	return users, nil
 }
 
-func (us *UserUsecaseImpl) SignUp(ctx context.Context, request request.SignUpInfo) error {
+func (us *UserUsecaseImpl) SignUp(ctx context.Context, request SignUpInfo) error {
 	var token string
 	var createdUser *userDomain.User
 

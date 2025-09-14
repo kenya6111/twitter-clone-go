@@ -3,7 +3,6 @@ package http
 import (
 	"twitter-clone-go/apperrors"
 	application "twitter-clone-go/application/user"
-	"twitter-clone-go/request"
 	"twitter-clone-go/response"
 
 	"github.com/gin-gonic/gin"
@@ -37,7 +36,7 @@ func (sc *UserHandler) GetUserListHandler(c *gin.Context) {
 }
 
 func (sc *UserHandler) SignUpHandler(c *gin.Context) {
-	var request request.SignUpInfo
+	var request application.SignUpInfo
 	if err := c.BindJSON(&request); err != nil {
 		err = apperrors.ReqBodyDecodeFailed.Wrap(err, "bad request body")
 		ErrorHandler(c, err)
