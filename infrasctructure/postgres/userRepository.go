@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"twitter-clone-go/apperrors"
 	domain "twitter-clone-go/domain/user"
 	db "twitter-clone-go/tutorial"
 
@@ -25,6 +26,11 @@ func (ur *UserRepository) FindAll() ([]domain.User, error) {
 	users, err := q.ListUsers(context.Background())
 	if err != nil {
 		log.Println(err)
+		return nil, err
+	}
+
+	if len(users) == 0 {
+		err = apperrors.NAData.Wrap(apperrors.ErrNoData, "no data")
 		return nil, err
 	}
 
