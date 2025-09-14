@@ -3,10 +3,10 @@ package usecase
 import (
 	"context"
 	"twitter-clone-go/apperrors"
-	"twitter-clone-go/common"
 	domain "twitter-clone-go/domain"
 	"twitter-clone-go/domain/service"
 	userDomain "twitter-clone-go/domain/user"
+	"twitter-clone-go/pkg/crypt"
 	"twitter-clone-go/request"
 
 	"golang.org/x/crypto/bcrypt"
@@ -55,7 +55,7 @@ func (us *UserService) SignUp(ctx context.Context, request request.SignUpInfo) e
 			return apperrors.InsertDataFailed.Wrap(err, "fail to insert user ")
 		}
 
-		token, _ = common.GenerateSecureToken(32)
+		token, _ = crypt.GenerateSecureToken(32)
 
 		_, err := us.repo.CreateEmailVerifyToken(ctx, createdUser.ID, token)
 		if err != nil {
