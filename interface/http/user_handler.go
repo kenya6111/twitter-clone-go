@@ -2,7 +2,7 @@ package http
 
 import (
 	"twitter-clone-go/apperrors"
-	application "twitter-clone-go/application/user"
+	"twitter-clone-go/application"
 
 	"github.com/gin-gonic/gin"
 )

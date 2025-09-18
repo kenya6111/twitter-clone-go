@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"twitter-clone-go/application/user"
+	"twitter-clone-go/application"
 	"twitter-clone-go/infrastructure/email/mailcatcher"
 	"twitter-clone-go/infrastructure/storage/postgres"
 	"twitter-clone-go/interface/http"
@@ -29,10 +29,10 @@ func main() {
 	repo := postgres.NewUserRepository(pool)
 
 	// サービスの注入
-	dSer := user.NewUserDomainService(repo)
+	dSer := application.NewUserDomainService(repo)
 
 	// ユースケースの注入
-	ser := user.NewUserUsecase(repo, tx, dSer, emailService)
+	ser := application.NewUserUsecase(repo, tx, dSer, emailService)
 
 	// ハンドラーの注入
 	con := http.NewUserHandler(ser)
