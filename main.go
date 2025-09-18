@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 	application "twitter-clone-go/application/user"
-	"twitter-clone-go/infrasctructure/email/mailcatcher"
-	"twitter-clone-go/infrasctructure/storage/postgres"
+	"twitter-clone-go/infrastructure/email/mailcatcher"
+	"twitter-clone-go/infrastructure/storage/postgres"
 	"twitter-clone-go/interface/http"
 
 	"github.com/gin-contrib/sessions"
