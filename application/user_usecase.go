@@ -5,7 +5,6 @@ import (
 	"twitter-clone-go/apperrors"
 	"twitter-clone-go/domain"
 	"twitter-clone-go/domain/service"
-	"twitter-clone-go/domain/user"
 	"twitter-clone-go/pkg/crypt"
 
 	"golang.org/x/crypto/bcrypt"
@@ -19,21 +18,21 @@ type SignUpInfo struct {
 }
 
 type UserUsecaseImpl struct {
-	repo         user.UserRepository
+	repo         domain.UserRepository
 	tx           domain.Transaction
-	dSer         user.UserDomainService
+	dSer         domain.UserDomainService
 	emailService service.EmailService
 }
 type UserUsecase interface {
-	GetUserList() ([]user.User, error)
+	GetUserList() ([]domain.User, error)
 	SignUp(c context.Context, signUpInfo SignUpInfo) error
 }
 
-func NewUserUsecase(r user.UserRepository, tx domain.Transaction, dSer user.UserDomainService, emailService service.EmailService) *UserUsecaseImpl {
+func NewUserUsecase(r domain.UserRepository, tx domain.Transaction, dSer domain.UserDomainService, emailService service.EmailService) *UserUsecaseImpl {
 	return &UserUsecaseImpl{repo: r, tx: tx, dSer: dSer, emailService: emailService}
 }
 
-func (u *UserUsecaseImpl) GetUserList() ([]user.User, error) {
+func (u *UserUsecaseImpl) GetUserList() ([]domain.User, error) {
 	users, err := u.repo.FindAll()
 	if err != nil {
 		err = apperrors.GetDataFailed.Wrap(err, "fail to get users data")
@@ -44,9 +43,9 @@ func (u *UserUsecaseImpl) GetUserList() ([]user.User, error) {
 
 func (u *UserUsecaseImpl) SignUp(ctx context.Context, request SignUpInfo) error {
 	var token string
-	var createdUser *user.User
+	var createdUser *domain.User
 
-	user, err := user.NewUser(request.Name, request.Email, request.Password, request.ConfirmPassword)
+	user, err := domain.NewUser(request.Name, request.Email, request.Password, request.ConfirmPassword)
 	if err != nil {
 		return err
 	}

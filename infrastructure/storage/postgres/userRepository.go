@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"twitter-clone-go/apperrors"
-	domain "twitter-clone-go/domain/user"
+	"twitter-clone-go/domain"
 	db "twitter-clone-go/tutorial"
 
 	"github.com/jackc/pgx/v5/pgtype"

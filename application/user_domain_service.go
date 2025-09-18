@@ -2,14 +2,14 @@ package application
 
 import (
 	"twitter-clone-go/apperrors"
-	"twitter-clone-go/domain/user"
+	"twitter-clone-go/domain"
 )
 
 type UserDomainService struct {
-	repo user.UserRepository
+	repo domain.UserRepository
 }
 
-func NewUserDomainService(r user.UserRepository) *UserDomainService {
+func NewUserDomainService(r domain.UserRepository) *UserDomainService {
 	return &UserDomainService{repo: r}
 }
 

@@ -1,11 +1,10 @@
-package user
+package domain
 
 import (
 	"context"
 	"net/mail"
 	"regexp"
 	"twitter-clone-go/apperrors"
-	"twitter-clone-go/domain"
 	"unicode/utf8"
 
 	ulid "github.com/oklog/ulid/v2"
@@ -61,19 +60,19 @@ type password struct {
 
 func NewPassword(pass string) (password, error) {
 	if len(pass) < passwordLengthMin {
-		return password{}, apperrors.BadParam.Wrap(domain.ErrTooShort, "password must be at least 8 characters")
+		return password{}, apperrors.BadParam.Wrap(ErrTooShort, "password must be at least 8 characters")
 	}
 	if !HasKigou(pass) {
-		return password{}, apperrors.BadParam.Wrap(domain.ErrNoHasKigou, "password must not contain symbols (-_!?)")
+		return password{}, apperrors.BadParam.Wrap(ErrNoHasKigou, "password must not contain symbols (-_!?)")
 	}
 	if !HasHanSu(pass) {
-		return password{}, apperrors.BadParam.Wrap(domain.ErrNoHasHanSu, "password must contain at least one number")
+		return password{}, apperrors.BadParam.Wrap(ErrNoHasHanSu, "password must contain at least one number")
 	}
 	if !HasLowerEi(pass) {
-		return password{}, apperrors.BadParam.Wrap(domain.ErrNoHasLowerEi, "password must contain at least one lowercase letter")
+		return password{}, apperrors.BadParam.Wrap(ErrNoHasLowerEi, "password must contain at least one lowercase letter")
 	}
 	if !HasUpperEi(pass) {
-		return password{}, apperrors.BadParam.Wrap(domain.ErrNoHasUpperEi, "password must contain at least one uppercase letter")
+		return password{}, apperrors.BadParam.Wrap(ErrNoHasUpperEi, "password must contain at least one uppercase letter")
 	}
 	return password{
 		value: pass,
