@@ -21,7 +21,7 @@ func main() {
 	}
 	defer pool.Close()
 
-	var emailService = mailcatcher.NewMainCatcherEmailService("test")
+	var emailService = mailcatcher.NewMainCatcherEmailService("temp")
 	// トランザクションの注入
 	tx := postgres.NewTransaction(pool)
 
