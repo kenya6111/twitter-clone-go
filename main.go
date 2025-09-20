@@ -1,83 +1,52 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
 	"log"
-	"os"
-	"twitter-clone-go/controllers"
+	"twitter-clone-go/application"
+	"twitter-clone-go/infrastructure/email/mailcatcher"
+	"twitter-clone-go/infrastructure/storage/postgres"
+	"twitter-clone-go/interface/http"
 
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/memstore"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 )
 
-var db *sql.DB
-// User モデル
-type User struct {
-    ID    int    `json:"id"`
-    Name  string `json:"name"`
-    Email string `json:"email"`
-	Password string `json:"password"`
-}
-
-
-
-func getUsers(c *gin.Context) {
-	rows, err := db.Query("SELECT * FROM users")
-
-	if err != nil {
-		log.Println(err)
-	}
-	for rows.Next() {
-		u := &User{}
-		if err := rows.Scan(&u.ID, &u.Name, &u.Email, &u.Password); err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(u)
-	}
-	defer rows.Close()
-}
-
-func setupDB(dbDriver string, dsn string) (*sql.DB, error) {
-	db, err := sql.Open(dbDriver, dsn)
-	if err != nil {
-		return nil, err
-	}
-	return db, err
-}
-
-func main(){
-
-	dbHost := os.Getenv("DB_HOST")
-    dbUser := os.Getenv("DB_USER")
-    dbPassword := os.Getenv("DB_PASSWORD")
-    dbName := os.Getenv("DB_NAME")
-    dbPort := os.Getenv("DB_PORT")
-	dbDriver := "postgres"
-    dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-        dbHost, dbPort, dbUser, dbPassword, dbName)
-	fmt.Println(dsn)
-	var err error
-	db, err = setupDB(dbDriver, dsn)
-	fmt.Println(db)
-
+func main() {
+	// DB接続
+	pool, err := postgres.SetupDB()
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer pool.Close()
 
-	defer db.Close()
+	var emailService = mailcatcher.NewMainCatcherEmailService("temp")
+	// トランザクションの注入
+	tx := postgres.NewTransaction(pool)
 
+	// リポジトリの注入
+	repo := postgres.NewUserRepository(pool)
 
-	pingErr := db.Ping()
-	if pingErr != nil {
-		log.Fatal(pingErr)
-	}
-	fmt.Println("Connected!")
+	// サービスの注入
+	dSer := application.NewUserDomainService(repo)
+
+	// ユースケースの注入
+	ser := application.NewUserUsecase(repo, tx, dSer, emailService)
+
+	// ハンドラーの注入
+	con := http.NewUserHandler(ser)
+
+	store := memstore.NewStore([]byte("secret"))
 
 	router := gin.Default()
-	router.GET("/",controllers.Home)
-	router.GET("/users",getUsers)
-	router.POST("/signup",controllers.SignUp)
-	router.GET("/health_check",controllers.HealthCheck)
-	router.Run()
+	router.Use(sessions.Sessions("mySession", store))
+	router.GET("/", con.Home)
+	router.GET("/users", con.GetUserListHandler)
+	router.POST("/signup", con.SignUpHandler)
+	router.GET("/health_check", con.HealthCheck)
+}
+
+func init() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 }
