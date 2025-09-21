@@ -15,18 +15,18 @@ import (
 
 func main() {
 	// DB接続
-	pool, err := postgres.SetupDB()
+	db, err := postgres.SetupDB()
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer pool.Close()
+	defer db.Close()
 
 	var emailService = mailcatcher.NewMainCatcherEmailService("temp")
 	// トランザクションの注入
-	tx := postgres.NewTransaction(pool)
+	tx := postgres.NewTransaction(db)
 
 	// リポジトリの注入
-	repo := postgres.NewUserRepository(pool)
+	repo := postgres.NewUserRepository(db)
 
 	// サービスの注入
 	dSer := application.NewUserDomainService(repo)
