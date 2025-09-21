@@ -32,11 +32,3 @@ func (t *Transaction) Do(ctx context.Context, fn func(ctx context.Context) error
 
 	return tx.Commit(ctx)
 }
-
-// DoWithLock は排他制御付きでトランザクション内で関数を実行する
-// func (t *Transaction) DoWithLock(ctx context.Context, fn func(ctx context.Context) error) error {
-// 	return t.client.pool.BeginFunc(ctx, func(tx pgx.Tx) error {
-// 		// 必要に応じて排他制御のロジックを追加
-// 		return fn(WithTx(ctx, tx))
-// 	})
-// }
