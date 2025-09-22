@@ -45,6 +45,9 @@ func main() {
 	router.GET("/users", con.GetUserListHandler)
 	router.POST("/signup", con.SignUpHandler)
 	router.GET("/health_check", con.HealthCheck)
+	if err := router.Run(":8080"); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func init() {
