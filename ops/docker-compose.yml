@@ -1,8 +1,8 @@
 services:
   go:
     build:
-      dockerfile: ./Dockerfile
-      context: ..
+      dockerfile: ops/Dockerfile
+      context: ../
     container_name: twitter-clone-api
     ports:
       - "8080:8080"
@@ -29,6 +29,8 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - postgres:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
     ports:
       - 5432:5432
     expose:
