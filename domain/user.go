@@ -20,8 +20,8 @@ type User struct {
 
 type UserRepository interface {
 	FindAll() ([]User, error)
-	FindByEmail(email string) (*User, error)
-	CountByEmail(email string) (int64, error)
+	FindByEmail(c context.Context, email string) (*User, error)
+	CountByEmail(c context.Context, email string) (int64, error)
 	CreateUser(c context.Context, email string, hash []byte) (*User, error)
 	CreateEmailVerifyToken(ctx context.Context, userId string, token string) (*EmailVerifyToken, error)
 }
@@ -108,4 +108,9 @@ const (
 	nameLengthMax     = 255
 	nameLengthMin     = 1
 	passwordLengthMin = 8
+)
+
+const (
+	UserStatusActive = true
+	UserStatusCancel = false
 )

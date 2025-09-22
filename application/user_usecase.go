@@ -49,7 +49,7 @@ func (u *UserUsecaseImpl) SignUp(ctx context.Context, request SignUpInfo) error 
 	if err != nil {
 		return err
 	}
-	if err := u.dSer.IsDuplicatedEmail(user.Email); err != nil {
+	if err := u.dSer.IsDuplicatedEmail(ctx, user.Email); err != nil {
 		return err
 	}
 
