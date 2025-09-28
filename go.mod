@@ -2,7 +2,11 @@ module twitter-clone-go
 
 go 1.24.1
 
-require github.com/gin-contrib/sessions v1.0.4
+require (
+	github.com/gin-contrib/sessions v1.0.4
+	github.com/google/go-cmp v0.7.0
+	go.uber.org/mock v0.6.0
+)
 
 require (
 	github.com/bytedance/gopkg v0.1.3 // indirect
@@ -10,12 +14,8 @@ require (
 	github.com/gorilla/securecookie v1.1.2 // indirect
 	github.com/gorilla/sessions v1.4.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/quasoft/memstore v0.0.0-20191010062613-2bce066d2b0b // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
-	go.uber.org/mock v0.6.0 // indirect
-	golang.org/x/mod v0.28.0 // indirect
-	golang.org/x/tools v0.37.0 // indirect
 )
 
 require (
@@ -27,7 +27,7 @@ require (
 	github.com/gin-gonic/gin v1.10.1
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.27.0
+	github.com/go-playground/validator/v10 v10.27.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
