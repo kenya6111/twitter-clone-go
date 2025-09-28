@@ -42,10 +42,11 @@ func (ur *UserRepository) FindAll() ([]domain.User, error) {
 }
 
 func (ur *UserRepository) FindByEmail(ctx context.Context, email string) (*domain.User, error) {
-	q := db.New(ur.client.pool)
+	// q := db.New(ur.client.pool)
+	q := ur.client.Querier(ctx)
 	user, err := q.GetUserByEmail(ctx, email)
 	if err != nil {
-		log.Println(err)
+		// log.Println(err.Error() + "@@@")
 		return nil, err
 	}
 	resultSet := toUserDomain(&user)
@@ -62,12 +63,12 @@ func (ur *UserRepository) CountByEmail(ctx context.Context, email string) (int64
 	return resultNum, nil
 }
 
-func (ur *UserRepository) CreateUser(ctx context.Context, email string, hash []byte) (*domain.User, error) {
+func (ur *UserRepository) CreateUser(ctx context.Context, email string, hash string) (*domain.User, error) {
 	q := ur.client.Querier(ctx)
 	userInfo := db.CreateUserParams{
 		Name:     email,
 		Email:    email,
-		Password: string(hash),
+		Password: hash,
 	}
 	user, err := q.CreateUser(ctx, userInfo)
 	if err != nil {
