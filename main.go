@@ -4,6 +4,7 @@ import (
 	"log"
 	"twitter-clone-go/application"
 	"twitter-clone-go/infrastructure/email/mailcatcher"
+	bcrypt "twitter-clone-go/infrastructure/password_hasher"
 	"twitter-clone-go/infrastructure/storage/postgres"
 	"twitter-clone-go/interface/http"
 
@@ -30,9 +31,10 @@ func main() {
 
 	// サービスの注入
 	dSer := application.NewUserDomainService(repo)
+	passwordHasher := bcrypt.NewBcryptHasher()
 
 	// ユースケースの注入
-	ser := application.NewUserUsecase(repo, tx, dSer, emailService)
+	ser := application.NewUserUsecase(repo, tx, dSer, emailService, passwordHasher)
 
 	// ハンドラーの注入
 	con := http.NewUserHandler(ser)
