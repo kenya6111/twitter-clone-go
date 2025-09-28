@@ -25,7 +25,7 @@ func (h *UserHandler) HealthCheck(c *gin.Context) {
 	})
 }
 
-func (h *UserHandler) GetUserListHandler(c *gin.Context) {
+func (h *UserHandler) GetUserList(c *gin.Context) {
 	users, err := h.usecase.GetUserList()
 	if err != nil {
 		ErrorHandler(c, err)
@@ -34,7 +34,7 @@ func (h *UserHandler) GetUserListHandler(c *gin.Context) {
 	SuccessResponse(c, users)
 }
 
-func (h *UserHandler) SignUpHandler(c *gin.Context) {
+func (h *UserHandler) SignUp(c *gin.Context) {
 	var request application.SignUpInfo
 	if err := c.BindJSON(&request); err != nil {
 		err = apperrors.ReqBodyDecodeFailed.Wrap(err, "bad request body")

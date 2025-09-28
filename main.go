@@ -24,17 +24,17 @@ func main() {
 
 	var emailService = mailcatcher.NewMainCatcherEmailService("temp")
 	// トランザクションの注入
-	tx := postgres.NewTransaction(db)
+	transaction := postgres.NewTransaction(db)
 
 	// リポジトリの注入
-	repo := postgres.NewUserRepository(db)
+	userRepo := postgres.NewUserRepository(db)
 
 	// サービスの注入
-	dSer := application.NewUserDomainService(repo)
+	userDomainService := application.NewUserDomainService(userRepo)
 	passwordHasher := bcrypt.NewBcryptHasher()
 
 	// ユースケースの注入
-	ser := application.NewUserUsecase(repo, tx, dSer, emailService, passwordHasher)
+	ser := application.NewUserUsecase(userRepo, transaction, userDomainService, emailService, passwordHasher)
 
 	// ハンドラーの注入
 	con := http.NewUserHandler(ser)
@@ -44,8 +44,8 @@ func main() {
 	router := gin.Default()
 	router.Use(sessions.Sessions("mySession", store))
 	router.GET("/", con.Home)
-	router.GET("/users", con.GetUserListHandler)
-	router.POST("/signup", con.SignUpHandler)
+	router.GET("/users", con.GetUserList)
+	router.POST("/signup", con.SignUp)
 	router.GET("/health_check", con.HealthCheck)
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)

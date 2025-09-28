@@ -132,7 +132,7 @@ func TestSignUpHandler_Signup(t *testing.T) {
 			c.Request = req
 
 			// ハンドラーの実行
-			tester.Handler.SignUpHandler(c)
+			tester.Handler.SignUp(c)
 
 			// ステータスコードの確認
 			if w.Code != tt.expectedStatus {
@@ -175,7 +175,7 @@ func TestUserHandler_SignUp_InvalidJSON(t *testing.T) {
 	c.Request = req
 
 	// ハンドラーの実行
-	tester.Handler.SignUpHandler(c)
+	tester.Handler.SignUp(c)
 
 	// ステータスコードの確認
 	if w.Code != http.StatusBadRequest {

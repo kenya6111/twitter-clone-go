@@ -15,23 +15,35 @@ type SignUpInfo struct {
 }
 
 type UserUsecaseImpl struct {
-	repo           domain.UserRepository
-	tx             domain.Transaction
-	dSer           domain.UserDomainService
-	emailService   service.EmailService
-	passwordHasher service.PasswordHasher
+	userRepo          domain.UserRepository
+	transaction       domain.Transaction
+	userDomainService domain.UserDomainService
+	emailService      service.EmailService
+	passwordHasher    service.PasswordHasher
 }
 type UserUsecase interface {
 	GetUserList() ([]domain.User, error)
 	SignUp(c context.Context, signUpInfo SignUpInfo) error
 }
 
-func NewUserUsecase(r domain.UserRepository, tx domain.Transaction, dSer domain.UserDomainService, emailService service.EmailService, passwordHasher service.PasswordHasher) *UserUsecaseImpl {
-	return &UserUsecaseImpl{repo: r, tx: tx, dSer: dSer, emailService: emailService, passwordHasher: passwordHasher}
+func NewUserUsecase(
+	userRepo domain.UserRepository,
+	transaction domain.Transaction,
+	userDomainService domain.UserDomainService,
+	emailService service.EmailService,
+	passwordHasher service.PasswordHasher,
+) *UserUsecaseImpl {
+	return &UserUsecaseImpl{
+		userRepo:          userRepo,
+		transaction:       transaction,
+		userDomainService: userDomainService,
+		emailService:      emailService,
+		passwordHasher:    passwordHasher,
+	}
 }
 
 func (u *UserUsecaseImpl) GetUserList() ([]domain.User, error) {
-	users, err := u.repo.FindAll()
+	users, err := u.userRepo.FindAll()
 	if err != nil {
 		err = apperrors.GetDataFailed.Wrap(err, "fail to get users data")
 		return nil, err
@@ -47,7 +59,7 @@ func (u *UserUsecaseImpl) SignUp(ctx context.Context, request SignUpInfo) error 
 	if err != nil {
 		return err
 	}
-	if err := u.dSer.IsDuplicatedEmail(ctx, user.Email); err != nil {
+	if err := u.userDomainService.IsDuplicatedEmail(ctx, user.Email); err != nil {
 		return err
 	}
 
@@ -56,8 +68,8 @@ func (u *UserUsecaseImpl) SignUp(ctx context.Context, request SignUpInfo) error 
 		return apperrors.GenerateHashFailed.Wrap(err, "fail to generate hash value from password")
 	}
 
-	err = u.tx.Do(ctx, func(ctx context.Context) error {
-		createdUser, err = u.repo.CreateUser(ctx, user.Email, hash)
+	err = u.transaction.Do(ctx, func(ctx context.Context) error {
+		createdUser, err = u.userRepo.CreateUser(ctx, user.Email, hash)
 		if err != nil {
 			return apperrors.InsertDataFailed.Wrap(err, "fail to insert user ")
 		}
@@ -67,7 +79,7 @@ func (u *UserUsecaseImpl) SignUp(ctx context.Context, request SignUpInfo) error 
 			return apperrors.GenerateTokenFailed.Wrap(err, "fail to generate secure token ")
 		}
 
-		_, err := u.repo.CreateEmailVerifyToken(ctx, createdUser.ID, token)
+		_, err := u.userRepo.CreateEmailVerifyToken(ctx, createdUser.ID, token)
 		if err != nil {
 			return apperrors.InsertDataFailed.Wrap(err, "fail to insert emailVerifyToken")
 		}
