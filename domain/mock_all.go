@@ -32,18 +32,18 @@ func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
 }
 
 // CountByEmail mocks base method.
-func (m *MockUserRepository) CountByEmail(email string) (int64, error) {
+func (m *MockUserRepository) CountByEmail(c context.Context, email string) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountByEmail", email)
+	ret := m.ctrl.Call(m, "CountByEmail", c, email)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CountByEmail indicates an expected call of CountByEmail.
-func (mr *MockUserRepositoryMockRecorder) CountByEmail(email any) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) CountByEmail(c, email any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByEmail", reflect.TypeOf((*MockUserRepository)(nil).CountByEmail), email)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByEmail", reflect.TypeOf((*MockUserRepository)(nil).CountByEmail), c, email)
 }
 
 // CreateEmailVerifyToken mocks base method.
@@ -62,7 +62,7 @@ func (mr *MockUserRepositoryMockRecorder) CreateEmailVerifyToken(ctx, userId, to
 }
 
 // CreateUser mocks base method.
-func (m *MockUserRepository) CreateUser(c context.Context, email string, hash []byte) (*User, error) {
+func (m *MockUserRepository) CreateUser(c context.Context, email string, hash string) (*User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateUser", c, email, hash)
 	ret0, _ := ret[0].(*User)
@@ -92,21 +92,22 @@ func (mr *MockUserRepositoryMockRecorder) FindAll() *gomock.Call {
 }
 
 // FindByEmail mocks base method.
-func (m *MockUserRepository) FindByEmail(email string) (*User, error) {
+func (m *MockUserRepository) FindByEmail(c context.Context, email string) (*User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindByEmail", email)
+	ret := m.ctrl.Call(m, "FindByEmail", c, email)
 	ret0, _ := ret[0].(*User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindByEmail indicates an expected call of FindByEmail.
-func (mr *MockUserRepositoryMockRecorder) FindByEmail(email any) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) FindByEmail(c, email any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByEmail", reflect.TypeOf((*MockUserRepository)(nil).FindByEmail), email)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByEmail", reflect.TypeOf((*MockUserRepository)(nil).FindByEmail), c, email)
 }
 
 // MockUserDomainService is a mock of UserDomainService interface.
+
 type MockUserDomainService struct {
 	ctrl     *gomock.Controller
 	recorder *MockUserDomainServiceMockRecorder
@@ -131,17 +132,17 @@ func (m *MockUserDomainService) EXPECT() *MockUserDomainServiceMockRecorder {
 }
 
 // IsDuplicatedEmail mocks base method.
-func (m *MockUserDomainService) IsDuplicatedEmail(email string) error {
+func (m *MockUserDomainService) IsDuplicatedEmail(ctx context.Context, email string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsDuplicatedEmail", email)
+	ret := m.ctrl.Call(m, "IsDuplicatedEmail", ctx, email)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // IsDuplicatedEmail indicates an expected call of IsDuplicatedEmail.
-func (mr *MockUserDomainServiceMockRecorder) IsDuplicatedEmail(email any) *gomock.Call {
+func (mr *MockUserDomainServiceMockRecorder) IsDuplicatedEmail(ctx, email any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsDuplicatedEmail", reflect.TypeOf((*MockUserDomainService)(nil).IsDuplicatedEmail), email)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsDuplicatedEmail", reflect.TypeOf((*MockUserDomainService)(nil).IsDuplicatedEmail), ctx, email)
 }
 
 // MockTransaction is a mock of Transaction interface.
@@ -218,4 +219,71 @@ func (m *MockEmailService) SendInvitationEmail(email, token string) error {
 func (mr *MockEmailServiceMockRecorder) SendInvitationEmail(email, token any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendInvitationEmail", reflect.TypeOf((*MockEmailService)(nil).SendInvitationEmail), email, token)
+}
+
+type MockPasswordHasher struct {
+	ctrl     *gomock.Controller
+	recorder *MockPasswordHasherMockRecorder
+	isgomock struct{}
+}
+
+// MockPasswordHasherMockRecorder is the mock recorder for MockPasswordHasher.
+type MockPasswordHasherMockRecorder struct {
+	mock *MockPasswordHasher
+}
+
+// NewMockPasswordHasher creates a new mock instance.
+func NewMockPasswordHasher(ctrl *gomock.Controller) *MockPasswordHasher {
+	mock := &MockPasswordHasher{ctrl: ctrl}
+	mock.recorder = &MockPasswordHasherMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockPasswordHasher) EXPECT() *MockPasswordHasherMockRecorder {
+	return m.recorder
+}
+
+// CompareHashAndPassword mocks base method.
+func (m *MockPasswordHasher) CompareHashAndPassword(hashedPassword, password string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CompareHashAndPassword", hashedPassword, password)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CompareHashAndPassword indicates an expected call of CompareHashAndPassword.
+func (mr *MockPasswordHasherMockRecorder) CompareHashAndPassword(hashedPassword, password any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CompareHashAndPassword", reflect.TypeOf((*MockPasswordHasher)(nil).CompareHashAndPassword), hashedPassword, password)
+}
+
+// HashPassword mocks base method.
+func (m *MockPasswordHasher) HashPassword(password string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HashPassword", password)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// HashPassword indicates an expected call of HashPassword.
+func (mr *MockPasswordHasherMockRecorder) HashPassword(password any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HashPassword", reflect.TypeOf((*MockPasswordHasher)(nil).HashPassword), password)
+}
+
+// GenerateSecureToken mocks base method.
+func (m *MockPasswordHasher) GenerateSecureToken(n int) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GenerateSecureToken", n)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GenerateSecureToken indicates an expected call of GenerateSecureToken.
+func (mr *MockPasswordHasherMockRecorder) GenerateSecureToken(n any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateSecureToken", reflect.TypeOf((*MockPasswordHasher)(nil).GenerateSecureToken), n)
 }
