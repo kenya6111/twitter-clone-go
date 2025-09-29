@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"time"
 )
 
@@ -12,6 +13,13 @@ type EmailVerifyToken struct {
 	CreatedAt time.Time
 }
 
-// type EmailVerifyTokenRepository interface {
-// 	CreateEmailVerifyToken(ctx context.Context, userId int32, token string, expiredAt time.Time) (*EmailVerifyToken, error)
-// }
+type EmailVerifyTokenRepository interface {
+	CreateEmailVerifyToken(ctx context.Context, userId string, token string) (*EmailVerifyToken, error)
+	// GetEmailVerifyToken(ctx context.Context, userId string, token string, expiredAt time.Time) (*EmailVerifyToken, error)
+	GetEmailVerifyToken(ctx context.Context, token string, expiredAt time.Time) (*EmailVerifyToken, error)
+	DeleteEmailVerifyToken(ctx context.Context, token string) error
+}
+
+func isExpired(expiredAt time.Time) bool {
+	return expiredAt.After(time.Now())
+}
