@@ -12,6 +12,7 @@ import (
 
 type UserUsecaseTester struct {
 	userRepo          *domain.MockUserRepository
+	emailVerifyRepo   *domain.MockEmailVerifyTokenRepository
 	Transaction       *domain.MockTransaction
 	userDomainService *domain.MockUserDomainService
 	emailService      *domain.MockEmailService
@@ -23,6 +24,7 @@ type UserUsecaseTester struct {
 func newUserUsecaseTester(ctrl *gomock.Controller) *UserUsecaseTester {
 	var (
 		userRepo          = domain.NewMockUserRepository(ctrl)
+		emailVerifyRepo   = domain.NewMockEmailVerifyTokenRepository(ctrl)
 		Transaction       = domain.NewMockTransaction(ctrl)
 		userDomainService = domain.NewMockUserDomainService(ctrl)
 		emailService      = domain.NewMockEmailService(ctrl)
@@ -31,11 +33,12 @@ func newUserUsecaseTester(ctrl *gomock.Controller) *UserUsecaseTester {
 
 	return &UserUsecaseTester{
 		userRepo:          userRepo,
+		emailVerifyRepo:   emailVerifyRepo,
 		Transaction:       Transaction,
 		userDomainService: userDomainService,
 		emailService:      emailService,
 		passwordHasher:    passwordHasher,
-		Usecase:           NewUserUsecase(userRepo, Transaction, userDomainService, emailService, passwordHasher),
+		Usecase:           NewUserUsecase(userRepo, emailVerifyRepo, Transaction, userDomainService, emailService, passwordHasher),
 	}
 }
 func TestUserUsecaseImpl_SignUp(t *testing.T) {
@@ -67,7 +70,7 @@ func TestUserUsecaseImpl_SignUp(t *testing.T) {
 						DoAndReturn(func(_ context.Context, f func(context.Context) error) error { // gomock で EXPECT().Do(ctx, gomock.Any()) だけだと、f は実行されない
 							return f(ctx)
 						}),
-					tester.userRepo.EXPECT().CreateUser(ctx, "user1@example.com", "hashed_password").Return(&domain.User{
+					tester.userRepo.EXPECT().CreateUser(ctx, "user1", "user1@example.com", "hashed_password").Return(&domain.User{
 						ID:       "1",
 						Name:     "user1",
 						Email:    "user1@example.com",
@@ -75,7 +78,7 @@ func TestUserUsecaseImpl_SignUp(t *testing.T) {
 						IsActive: false,
 					}, nil),
 					tester.passwordHasher.EXPECT().GenerateSecureToken(32).Return("secure_token!!!", nil),
-					tester.userRepo.EXPECT().CreateEmailVerifyToken(ctx, "1", "secure_token!!!").Return(nil, nil),
+					tester.emailVerifyRepo.EXPECT().CreateEmailVerifyToken(ctx, "1", "secure_token!!!").Return(nil, nil),
 					tester.emailService.EXPECT().SendInvitationEmail("user1@example.com", "secure_token!!!").Return(nil),
 				)
 			},
@@ -140,7 +143,7 @@ func TestUserUsecaseImpl_SignUp(t *testing.T) {
 						DoAndReturn(func(_ context.Context, f func(context.Context) error) error {
 							return f(ctx)
 						}),
-					tester.userRepo.EXPECT().CreateUser(ctx, "user1@example.com", "hashed_password").Return(&domain.User{
+					tester.userRepo.EXPECT().CreateUser(ctx, "user1", "user1@example.com", "hashed_password").Return(&domain.User{
 						ID:       "1",
 						Name:     "user1",
 						Email:    "user1@example.com",
@@ -168,7 +171,7 @@ func TestUserUsecaseImpl_SignUp(t *testing.T) {
 						DoAndReturn(func(_ context.Context, f func(context.Context) error) error {
 							return f(ctx)
 						}),
-					tester.userRepo.EXPECT().CreateUser(ctx, "user1@example.com", "hashed_password").Return(&domain.User{
+					tester.userRepo.EXPECT().CreateUser(ctx, "user1", "user1@example.com", "hashed_password").Return(&domain.User{
 						ID:       "1",
 						Name:     "user1",
 						Email:    "user1@example.com",
@@ -197,7 +200,7 @@ func TestUserUsecaseImpl_SignUp(t *testing.T) {
 						DoAndReturn(func(_ context.Context, f func(context.Context) error) error {
 							return f(ctx)
 						}),
-					tester.userRepo.EXPECT().CreateUser(ctx, "user1@example.com", "hashed_password").Return(&domain.User{
+					tester.userRepo.EXPECT().CreateUser(ctx, "user1", "user1@example.com", "hashed_password").Return(&domain.User{
 						ID:       "1",
 						Name:     "user1",
 						Email:    "user1@example.com",
@@ -205,7 +208,7 @@ func TestUserUsecaseImpl_SignUp(t *testing.T) {
 						IsActive: false,
 					}, nil),
 					tester.passwordHasher.EXPECT().GenerateSecureToken(32).Return("secure_token!!!", nil),
-					tester.userRepo.EXPECT().CreateEmailVerifyToken(ctx, "1", "secure_token!!!").Return(nil, errors.New(string(apperrors.InsertDataFailed))),
+					tester.emailVerifyRepo.EXPECT().CreateEmailVerifyToken(ctx, "1", "secure_token!!!").Return(nil, errors.New(string(apperrors.InsertDataFailed))),
 				)
 			},
 			wantErr: true,
@@ -227,7 +230,7 @@ func TestUserUsecaseImpl_SignUp(t *testing.T) {
 						DoAndReturn(func(_ context.Context, f func(context.Context) error) error {
 							return f(ctx)
 						}),
-					tester.userRepo.EXPECT().CreateUser(ctx, "user1@example.com", "hashed_password").Return(&domain.User{
+					tester.userRepo.EXPECT().CreateUser(ctx, "user1", "user1@example.com", "hashed_password").Return(&domain.User{
 						ID:       "1",
 						Name:     "user1",
 						Email:    "user1@example.com",
@@ -235,7 +238,7 @@ func TestUserUsecaseImpl_SignUp(t *testing.T) {
 						IsActive: false,
 					}, nil),
 					tester.passwordHasher.EXPECT().GenerateSecureToken(32).Return("secure_token!!!", nil),
-					tester.userRepo.EXPECT().CreateEmailVerifyToken(ctx, "1", "secure_token!!!").Return(nil, nil),
+					tester.emailVerifyRepo.EXPECT().CreateEmailVerifyToken(ctx, "1", "secure_token!!!").Return(nil, nil),
 					tester.emailService.EXPECT().SendInvitationEmail("user1@example.com", "secure_token!!!").Return(errors.New(string(apperrors.SendEmailFailed))),
 				)
 			},

@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"log"
-	"time"
 
 	"twitter-clone-go/apperrors"
 	"twitter-clone-go/domain"
@@ -63,10 +62,10 @@ func (ur *UserRepository) CountByEmail(ctx context.Context, email string) (int64
 	return resultNum, nil
 }
 
-func (ur *UserRepository) CreateUser(ctx context.Context, email string, hash string) (*domain.User, error) {
+func (ur *UserRepository) CreateUser(ctx context.Context, name string, email string, hash string) (*domain.User, error) {
 	q := ur.client.Querier(ctx)
 	userInfo := db.CreateUserParams{
-		Name:     email,
+		Name:     name,
 		Email:    email,
 		Password: hash,
 	}
@@ -79,23 +78,18 @@ func (ur *UserRepository) CreateUser(ctx context.Context, email string, hash str
 	return &resultSet, nil
 }
 
-func (ur *UserRepository) CreateEmailVerifyToken(ctx context.Context, userId string, token string) (*domain.EmailVerifyToken, error) {
+func (ur *UserRepository) UpdateUser(ctx context.Context, userId string) error {
 	q := ur.client.Querier(ctx)
-	expiredAt := pgtype.Timestamp{}
-	_ = expiredAt.Scan(time.Now().Add(24 * time.Hour * 7))
-
-	args := db.CreateEmailVerifyTokenParams{
-		UserID:    userId,
-		Token:     token,
-		ExpiresAt: expiredAt,
+	activateInfo := db.UpdateUserParams{
+		ID:       userId,
+		IsActive: pgBool(true),
 	}
-	resultSet, err := q.CreateEmailVerifyToken(ctx, args)
+	err := q.UpdateUser(ctx, activateInfo)
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		return err
 	}
-	emailVerifyToken := toEmailVerifyTokenDomain(&resultSet)
-	return &emailVerifyToken, nil
+	return nil
 }
 
 func toUserDomain(in *db.User) domain.User {
@@ -108,12 +102,5 @@ func toUserDomain(in *db.User) domain.User {
 		IsActive: in.IsActive.Bool,
 	}
 }
-func toEmailVerifyTokenDomain(in *db.EmailVerifyToken) domain.EmailVerifyToken {
-	return domain.EmailVerifyToken{
-		ID:        in.ID,
-		UserID:    in.UserID,
-		Token:     in.Token,
-		ExpiresAt: in.ExpiresAt.Time,
-		CreatedAt: in.CreatedAt.Time,
-	}
-}
+
+func pgBool(b bool) pgtype.Bool { return pgtype.Bool{Bool: b, Valid: true} }

@@ -47,3 +47,11 @@ func (h *UserHandler) SignUp(c *gin.Context) {
 	}
 	SuccessResponse(c, nil)
 }
+func (h *UserHandler) Activate(c *gin.Context) {
+	token := c.Query("token")
+	if err := h.usecase.Activate(c.Request.Context(), token); err != nil {
+		ErrorHandler(c, err)
+		return
+	}
+	SuccessResponse(c, nil)
+}

@@ -15,7 +15,6 @@ type EmailVerifyToken struct {
 
 type EmailVerifyTokenRepository interface {
 	CreateEmailVerifyToken(ctx context.Context, userId string, token string) (*EmailVerifyToken, error)
-	// GetEmailVerifyToken(ctx context.Context, userId string, token string, expiredAt time.Time) (*EmailVerifyToken, error)
 	GetEmailVerifyToken(ctx context.Context, token string, expiredAt time.Time) (*EmailVerifyToken, error)
 	DeleteEmailVerifyToken(ctx context.Context, token string) error
 }

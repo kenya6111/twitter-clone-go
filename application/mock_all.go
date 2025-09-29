@@ -61,3 +61,17 @@ func (mr *MockUserUsecaseMockRecorder) SignUp(c, signUpInfo any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignUp", reflect.TypeOf((*MockUserUsecase)(nil).SignUp), c, signUpInfo)
 }
+
+// Activate mocks base method.
+func (m *MockUserUsecase) Activate(ctx context.Context, token string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Activate", ctx, token)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Activate indicates an expected call of Activate.
+func (mr *MockUserUsecaseMockRecorder) Activate(ctx, token any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Activate", reflect.TypeOf((*MockUserUsecase)(nil).Activate), ctx, token)
+}

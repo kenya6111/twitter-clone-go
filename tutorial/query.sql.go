@@ -102,16 +102,14 @@ func (q *Queries) DeleteUser(ctx context.Context, id string) error {
 const getEmailVerifyToken = `-- name: GetEmailVerifyToken :one
 SELECT id, user_id, token, expires_at, created_at FROM email_verify_token
 WHERE token = $1
-AND user_id = $2
 `
 
 type GetEmailVerifyTokenParams struct {
-	Token  string
-	UserID string
+	Token string
 }
 
 func (q *Queries) GetEmailVerifyToken(ctx context.Context, arg GetEmailVerifyTokenParams) (EmailVerifyToken, error) {
-	row := q.db.QueryRow(ctx, getEmailVerifyToken, arg.Token, arg.UserID)
+	row := q.db.QueryRow(ctx, getEmailVerifyToken, arg.Token)
 	var i EmailVerifyToken
 	err := row.Scan(
 		&i.ID,
