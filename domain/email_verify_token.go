@@ -19,6 +19,6 @@ type EmailVerifyTokenRepository interface {
 	DeleteEmailVerifyToken(ctx context.Context, token string) error
 }
 
-func isExpired(expiredAt time.Time) bool {
+func IsExpired(expiredAt time.Time) bool {
 	return expiredAt.After(time.Now())
 }

@@ -117,6 +117,11 @@ func (u *UserUsecaseImpl) Activate(ctx context.Context, token string) error {
 		return err
 	}
 
+	if domain.IsExpired(result.ExpiresAt) {
+		err = apperrors.BadParam.Wrap(apperrors.ErrEmailVerifyTokenExpired, "email verify token is already expired")
+		return err
+	}
+
 	userId := result.UserID
 
 	err = u.userRepo.UpdateUser(ctx, userId)
