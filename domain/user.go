@@ -104,9 +104,9 @@ func NewPassword(pass string) (Password, error) {
 	}, nil
 }
 
-func NewPasswordHash(hashPassword string) (Password, error) {
+func NewPasswordHash(hash string) (Password, error) {
 	return Password{
-		value: hashPassword,
+		value: hash,
 	}, nil
 }
 
