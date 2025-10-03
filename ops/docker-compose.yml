@@ -11,6 +11,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     environment:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
@@ -48,6 +50,11 @@ services:
     networks:
       - default
       - twitter-clone-go_default #snowboardアプリのネットワーク名
+  redis:
+    container_name: redis
+    image: redis:latest
+    ports:
+      - 6379:6379
 volumes:
   postgres:
 
