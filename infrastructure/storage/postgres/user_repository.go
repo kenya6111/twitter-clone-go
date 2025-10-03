@@ -41,14 +41,12 @@ func (ur *UserRepository) FindAll() ([]domain.User, error) {
 }
 
 func (ur *UserRepository) FindByEmail(ctx context.Context, email string) (*domain.User, error) {
-	// q := db.New(ur.client.pool)
 	q := ur.client.Querier(ctx)
 	user, err := q.GetUserByEmail(ctx, email)
 	if err != nil {
-		// log.Println(err.Error() + "@@@")
 		return nil, err
 	}
-	resultSet := toUserDomain(&user)
+	resultSet := toUserDomainForHash(&user)
 	return &resultSet, nil
 }
 
@@ -94,6 +92,16 @@ func (ur *UserRepository) UpdateUser(ctx context.Context, userId string) error {
 
 func toUserDomain(in *db.User) domain.User {
 	p, _ := domain.NewPassword(in.Password)
+	return domain.User{
+		ID:       in.ID,
+		Name:     in.Name,
+		Email:    in.Email,
+		Password: p,
+		IsActive: in.IsActive.Bool,
+	}
+}
+func toUserDomainForHash(in *db.User) domain.User {
+	p, _ := domain.NewHashedPassword(in.Password)
 	return domain.User{
 		ID:       in.ID,
 		Name:     in.Name,
