@@ -77,7 +77,12 @@ func NewPassword(pass string) (Password, error) {
 	return Password{
 		value: pass,
 	}, nil
+}
 
+func NewHashedPassword(hash string) (Password, error) {
+	return Password{
+		value: hash,
+	}, nil
 }
 
 func (p Password) Value() string {
