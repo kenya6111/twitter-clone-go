@@ -18,6 +18,10 @@ type SignUpInfo struct {
 type ActivateInfo struct {
 	Token string `json:"token" binding:"required"`
 }
+type LoginInfo struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
+}
 
 type UserUsecaseImpl struct {
 	userRepo          domain.UserRepository
@@ -26,11 +30,14 @@ type UserUsecaseImpl struct {
 	userDomainService domain.UserDomainService
 	emailService      service.EmailService
 	passwordHasher    service.PasswordHasher
+	sessionStore      service.SessionStore
 }
 type UserUsecase interface {
 	GetUserList() ([]domain.User, error)
 	SignUp(c context.Context, signUpInfo SignUpInfo) error
 	Activate(ctx context.Context, request string) error
+	Login(ctx context.Context, request LoginInfo) (*domain.User, error)
+	Logout(ctx context.Context) error
 }
 
 func NewUserUsecase(
@@ -40,6 +47,7 @@ func NewUserUsecase(
 	userDomainService domain.UserDomainService,
 	emailService service.EmailService,
 	passwordHasher service.PasswordHasher,
+	sessionStore service.SessionStore,
 ) *UserUsecaseImpl {
 	return &UserUsecaseImpl{
 		userRepo:          userRepo,
@@ -48,6 +56,7 @@ func NewUserUsecase(
 		userDomainService: userDomainService,
 		emailService:      emailService,
 		passwordHasher:    passwordHasher,
+		sessionStore:      sessionStore,
 	}
 }
 
@@ -134,6 +143,38 @@ func (u *UserUsecaseImpl) Activate(ctx context.Context, token string) error {
 	if err != nil {
 		err = apperrors.DeleteDataFailed.Wrap(err, "fail to delete email verify token")
 		return err
+	}
+	return nil
+}
+
+func (u *UserUsecaseImpl) Login(ctx context.Context, request LoginInfo) (*domain.User, error) {
+	user, err := u.userRepo.FindByEmail(ctx, request.Email)
+	if err != nil {
+		return nil, apperrors.Unauthorized.Wrap(err, "fail to get user data")
+	}
+
+	if !user.IsActive {
+		return nil, apperrors.Unauthorized.Wrap(err, "user is not be activated")
+	}
+
+	err = u.passwordHasher.CompareHashAndPassword(user.Password.Value(), request.Password)
+	if err != nil {
+		return nil, apperrors.Unauthorized.Wrap(err, "password is invalid")
+	}
+
+	err = u.sessionStore.Set(ctx, user.ID)
+	if err != nil {
+		return nil, apperrors.Unauthorized.Wrap(err, "")
+	}
+
+	return user, nil
+
+}
+
+func (u *UserUsecaseImpl) Logout(ctx context.Context) error {
+	err := u.sessionStore.Delete(ctx)
+	if err != nil {
+		return apperrors.LogoutFailed.Wrap(err, "")
 	}
 	return nil
 }

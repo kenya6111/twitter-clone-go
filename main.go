@@ -5,11 +5,10 @@ import (
 	"twitter-clone-go/application"
 	"twitter-clone-go/infrastructure/email/mailcatcher"
 	bcrypt "twitter-clone-go/infrastructure/password_hasher"
+	"twitter-clone-go/infrastructure/session_store"
 	"twitter-clone-go/infrastructure/storage/postgres"
 	"twitter-clone-go/interface/http"
 
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/memstore"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 )
@@ -33,22 +32,26 @@ func main() {
 	// サービスの注入
 	userDomainService := application.NewUserDomainService(userRepo)
 	passwordHasher := bcrypt.NewBcryptHasher()
+	sessionStore := session_store.NewSessionStore()
 
 	// ユースケースの注入
-	ser := application.NewUserUsecase(userRepo, emailVerifyRepo, transaction, userDomainService, emailService, passwordHasher)
+	ser := application.NewUserUsecase(userRepo, emailVerifyRepo, transaction, userDomainService, emailService, passwordHasher, sessionStore)
 
 	// ハンドラーの注入
 	con := http.NewUserHandler(ser)
 
-	store := memstore.NewStore([]byte("secret"))
-
 	router := gin.Default()
-	router.Use(sessions.Sessions("mySession", store))
 	router.GET("/", con.Home)
-	router.GET("/users", con.GetUserList)
 	router.POST("/signup", con.SignUp)
 	router.POST("/activate", con.Activate)
+	router.POST("/login", con.Login)
+	router.POST("/logout", con.Logout)
 	router.GET("/health_check", con.HealthCheck)
+
+	loginCheckGroup := router.Group("/")
+	loginCheckGroup.Use(http.CheckLogin(sessionStore))
+	loginCheckGroup.GET("/users", con.GetUserList)
+
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)
 	}
