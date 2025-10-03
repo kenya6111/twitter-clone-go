@@ -20,5 +20,5 @@ type EmailVerifyTokenRepository interface {
 }
 
 func IsExpired(expiredAt time.Time) bool {
-	return expiredAt.After(time.Now())
+	return expiredAt.Before(time.Now())
 }
