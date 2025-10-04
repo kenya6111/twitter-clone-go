@@ -1,5 +1,7 @@
 package domain
 
+import "context"
+
 type UserDomainService interface {
-	IsDuplicatedEmail(email string) error
+	IsDuplicatedEmail(ctx context.Context, email string) error
 }

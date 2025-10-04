@@ -16,6 +16,7 @@ const (
 	DeleteDataFailed    ErrCode = "S009"
 	SendMailFailed      ErrCode = "S010"
 	SessionSaveFailed   ErrCode = "S011"
+	SendEmailFailed     ErrCode = "S012"
 
 	ReqBodyDecodeFailed ErrCode = "R001"
 	BadParam            ErrCode = "R002"

@@ -14,15 +14,15 @@ type User struct {
 	ID       string
 	Name     string
 	Email    string
-	Password password
+	Password Password
 	IsActive bool
 }
 
 type UserRepository interface {
 	FindAll() ([]User, error)
-	FindByEmail(email string) (*User, error)
-	CountByEmail(email string) (int64, error)
-	CreateUser(c context.Context, email string, hash []byte) (*User, error)
+	FindByEmail(c context.Context, email string) (*User, error)
+	CountByEmail(c context.Context, email string) (int64, error)
+	CreateUser(c context.Context, email string, hash string) (*User, error)
 	CreateEmailVerifyToken(ctx context.Context, userId string, token string) (*EmailVerifyToken, error)
 }
 
@@ -54,33 +54,33 @@ func NewUser(name string, email string, password string, confirmPassword string)
 	}, nil
 }
 
-type password struct {
+type Password struct {
 	value string
 }
 
-func NewPassword(pass string) (password, error) {
+func NewPassword(pass string) (Password, error) {
 	if len(pass) < passwordLengthMin {
-		return password{}, apperrors.BadParam.Wrap(ErrTooShort, "password must be at least 8 characters")
+		return Password{}, apperrors.BadParam.Wrap(ErrTooShort, "password must be at least 8 characters")
 	}
 	if !HasKigou(pass) {
-		return password{}, apperrors.BadParam.Wrap(ErrNoHasKigou, "password must not contain symbols (-_!?)")
+		return Password{}, apperrors.BadParam.Wrap(ErrNoHasKigou, "password must not contain symbols (-_!?)")
 	}
 	if !HasHanSu(pass) {
-		return password{}, apperrors.BadParam.Wrap(ErrNoHasHanSu, "password must contain at least one number")
+		return Password{}, apperrors.BadParam.Wrap(ErrNoHasHanSu, "password must contain at least one number")
 	}
 	if !HasLowerEi(pass) {
-		return password{}, apperrors.BadParam.Wrap(ErrNoHasLowerEi, "password must contain at least one lowercase letter")
+		return Password{}, apperrors.BadParam.Wrap(ErrNoHasLowerEi, "password must contain at least one lowercase letter")
 	}
 	if !HasUpperEi(pass) {
-		return password{}, apperrors.BadParam.Wrap(ErrNoHasUpperEi, "password must contain at least one uppercase letter")
+		return Password{}, apperrors.BadParam.Wrap(ErrNoHasUpperEi, "password must contain at least one uppercase letter")
 	}
-	return password{
+	return Password{
 		value: pass,
 	}, nil
 
 }
 
-func (p password) Value() string {
+func (p Password) Value() string {
 	return p.value
 }
 
@@ -108,4 +108,9 @@ const (
 	nameLengthMax     = 255
 	nameLengthMin     = 1
 	passwordLengthMin = 8
+)
+
+const (
+	UserStatusActive = true
+	UserStatusCancel = false
 )

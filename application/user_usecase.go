@@ -5,35 +5,45 @@ import (
 	"twitter-clone-go/apperrors"
 	"twitter-clone-go/domain"
 	"twitter-clone-go/domain/service"
-	"twitter-clone-go/pkg/crypt"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 type SignUpInfo struct {
-	Name            string `validate:"required"`
-	Email           string `validate:"required,email"`
-	Password        string `validate:"required,gte=8,has_kigou,has_han_su,has_lower_ei,has_upper_ei"`
-	ConfirmPassword string `validate:"required,gte=8,has_kigou,has_han_su,has_lower_ei,has_upper_ei"`
+	Name            string `json:"name" binding:"required"`
+	Email           string `json:"email" binding:"required,email"`
+	Password        string `json:"password" binding:"required"`
+	ConfirmPassword string `json:"confirmPassword" binding:"required"`
 }
 
 type UserUsecaseImpl struct {
-	repo         domain.UserRepository
-	tx           domain.Transaction
-	dSer         domain.UserDomainService
-	emailService service.EmailService
+	userRepo          domain.UserRepository
+	transaction       domain.Transaction
+	userDomainService domain.UserDomainService
+	emailService      service.EmailService
+	passwordHasher    service.PasswordHasher
 }
 type UserUsecase interface {
 	GetUserList() ([]domain.User, error)
 	SignUp(c context.Context, signUpInfo SignUpInfo) error
 }
 
-func NewUserUsecase(r domain.UserRepository, tx domain.Transaction, dSer domain.UserDomainService, emailService service.EmailService) *UserUsecaseImpl {
-	return &UserUsecaseImpl{repo: r, tx: tx, dSer: dSer, emailService: emailService}
+func NewUserUsecase(
+	userRepo domain.UserRepository,
+	transaction domain.Transaction,
+	userDomainService domain.UserDomainService,
+	emailService service.EmailService,
+	passwordHasher service.PasswordHasher,
+) *UserUsecaseImpl {
+	return &UserUsecaseImpl{
+		userRepo:          userRepo,
+		transaction:       transaction,
+		userDomainService: userDomainService,
+		emailService:      emailService,
+		passwordHasher:    passwordHasher,
+	}
 }
 
 func (u *UserUsecaseImpl) GetUserList() ([]domain.User, error) {
-	users, err := u.repo.FindAll()
+	users, err := u.userRepo.FindAll()
 	if err != nil {
 		err = apperrors.GetDataFailed.Wrap(err, "fail to get users data")
 		return nil, err
@@ -49,24 +59,27 @@ func (u *UserUsecaseImpl) SignUp(ctx context.Context, request SignUpInfo) error 
 	if err != nil {
 		return err
 	}
-	if err := u.dSer.IsDuplicatedEmail(user.Email); err != nil {
+	if err := u.userDomainService.IsDuplicatedEmail(ctx, user.Email); err != nil {
 		return err
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password.Value()), bcrypt.DefaultCost)
+	hash, err := u.passwordHasher.HashPassword(user.Password.Value())
 	if err != nil {
-		return apperrors.GetDataFailed.Wrap(err, "fail to generate has value from password")
+		return apperrors.GenerateHashFailed.Wrap(err, "fail to generate hash value from password")
 	}
 
-	err = u.tx.Do(ctx, func(ctx context.Context) error {
-		createdUser, err = u.repo.CreateUser(ctx, user.Email, hash)
+	err = u.transaction.Do(ctx, func(ctx context.Context) error {
+		createdUser, err = u.userRepo.CreateUser(ctx, user.Email, hash)
 		if err != nil {
 			return apperrors.InsertDataFailed.Wrap(err, "fail to insert user ")
 		}
 
-		token, _ = crypt.GenerateSecureToken(32)
+		token, err = u.passwordHasher.GenerateSecureToken(32)
+		if err != nil {
+			return apperrors.GenerateTokenFailed.Wrap(err, "fail to generate secure token ")
+		}
 
-		_, err := u.repo.CreateEmailVerifyToken(ctx, createdUser.ID, token)
+		_, err := u.userRepo.CreateEmailVerifyToken(ctx, createdUser.ID, token)
 		if err != nil {
 			return apperrors.InsertDataFailed.Wrap(err, "fail to insert emailVerifyToken")
 		}
@@ -76,8 +89,8 @@ func (u *UserUsecaseImpl) SignUp(ctx context.Context, request SignUpInfo) error 
 		return err
 	}
 
-	if err := u.emailService.SendInvitationEmail(token, user.Email); err != nil {
-		return apperrors.GenerateTokenFailed.Wrap(err, "fail to send invitation mail")
+	if err := u.emailService.SendInvitationEmail(user.Email, token); err != nil {
+		return apperrors.SendEmailFailed.Wrap(err, "fail to send invitation mail")
 	}
 
 	return nil

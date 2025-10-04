@@ -4,6 +4,7 @@ import (
 	"log"
 	"twitter-clone-go/application"
 	"twitter-clone-go/infrastructure/email/mailcatcher"
+	bcrypt "twitter-clone-go/infrastructure/password_hasher"
 	"twitter-clone-go/infrastructure/storage/postgres"
 	"twitter-clone-go/interface/http"
 
@@ -15,24 +16,25 @@ import (
 
 func main() {
 	// DB接続
-	pool, err := postgres.SetupDB()
+	db, err := postgres.SetupDB()
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer pool.Close()
+	defer db.Close()
 
 	var emailService = mailcatcher.NewMainCatcherEmailService("temp")
 	// トランザクションの注入
-	tx := postgres.NewTransaction(pool)
+	transaction := postgres.NewTransaction(db)
 
 	// リポジトリの注入
-	repo := postgres.NewUserRepository(pool)
+	userRepo := postgres.NewUserRepository(db)
 
 	// サービスの注入
-	dSer := application.NewUserDomainService(repo)
+	userDomainService := application.NewUserDomainService(userRepo)
+	passwordHasher := bcrypt.NewBcryptHasher()
 
 	// ユースケースの注入
-	ser := application.NewUserUsecase(repo, tx, dSer, emailService)
+	ser := application.NewUserUsecase(userRepo, transaction, userDomainService, emailService, passwordHasher)
 
 	// ハンドラーの注入
 	con := http.NewUserHandler(ser)
@@ -42,9 +44,12 @@ func main() {
 	router := gin.Default()
 	router.Use(sessions.Sessions("mySession", store))
 	router.GET("/", con.Home)
-	router.GET("/users", con.GetUserListHandler)
-	router.POST("/signup", con.SignUpHandler)
+	router.GET("/users", con.GetUserList)
+	router.POST("/signup", con.SignUp)
 	router.GET("/health_check", con.HealthCheck)
+	if err := router.Run(":8080"); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func init() {

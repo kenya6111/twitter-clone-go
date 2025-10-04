@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"twitter-clone-go/apperrors"
 	"twitter-clone-go/domain"
 )
@@ -13,8 +14,8 @@ func NewUserDomainService(r domain.UserRepository) *UserDomainService {
 	return &UserDomainService{repo: r}
 }
 
-func (s *UserDomainService) IsDuplicatedEmail(email string) error {
-	user, err := s.repo.CountByEmail(email)
+func (s *UserDomainService) IsDuplicatedEmail(ctx context.Context, email string) error {
+	user, err := s.repo.CountByEmail(ctx, email)
 	if err != nil {
 		return apperrors.GetDataFailed.Wrap(apperrors.ErrNoData, "fail to get user by email")
 	}

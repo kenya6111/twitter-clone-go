@@ -41,20 +41,21 @@ func (ur *UserRepository) FindAll() ([]domain.User, error) {
 	return resultSets, nil
 }
 
-func (ur *UserRepository) FindByEmail(email string) (*domain.User, error) {
-	q := db.New(ur.client.pool)
-	user, err := q.GetUserByEmail(context.Background(), email)
+func (ur *UserRepository) FindByEmail(ctx context.Context, email string) (*domain.User, error) {
+	// q := db.New(ur.client.pool)
+	q := ur.client.Querier(ctx)
+	user, err := q.GetUserByEmail(ctx, email)
 	if err != nil {
-		log.Println(err)
+		// log.Println(err.Error() + "@@@")
 		return nil, err
 	}
 	resultSet := toUserDomain(&user)
 	return &resultSet, nil
 }
 
-func (ur *UserRepository) CountByEmail(email string) (int64, error) {
+func (ur *UserRepository) CountByEmail(ctx context.Context, email string) (int64, error) {
 	q := db.New(ur.client.pool)
-	resultNum, err := q.CountUsersByEmail(context.Background(), email)
+	resultNum, err := q.CountUsersByEmail(ctx, email)
 	if err != nil {
 		log.Println(err)
 		return 99, err
@@ -62,14 +63,14 @@ func (ur *UserRepository) CountByEmail(email string) (int64, error) {
 	return resultNum, nil
 }
 
-func (ur *UserRepository) CreateUser(c context.Context, email string, hash []byte) (*domain.User, error) {
-	q := ur.client.Querier(c)
+func (ur *UserRepository) CreateUser(ctx context.Context, email string, hash string) (*domain.User, error) {
+	q := ur.client.Querier(ctx)
 	userInfo := db.CreateUserParams{
 		Name:     email,
 		Email:    email,
-		Password: string(hash),
+		Password: hash,
 	}
-	user, err := q.CreateUser(c, userInfo)
+	user, err := q.CreateUser(ctx, userInfo)
 	if err != nil {
 		log.Println(err)
 		return nil, err
