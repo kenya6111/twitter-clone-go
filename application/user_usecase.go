@@ -115,35 +115,43 @@ func (u *UserUsecaseImpl) SignUp(ctx context.Context, request SignUpInfo) error 
 }
 
 func (u *UserUsecaseImpl) Activate(ctx context.Context, token string) error {
-	result, err := u.emailVerifyRepo.GetEmailVerifyToken(ctx, token, time.Now().Add(time.Hour*24))
+	err := u.transaction.Do(ctx, func(ctx context.Context) error {
+		result, err := u.emailVerifyRepo.GetEmailVerifyToken(ctx, token, time.Now().Add(time.Hour*24))
+		if err != nil {
+			err = apperrors.GetDataFailed.Wrap(err, "fail to get emailVerifyToken")
+			return err
+		}
+
+		if result == nil {
+			err = apperrors.BadParam.Wrap(apperrors.ErrNoData, "User with no verification email sent, or already verified")
+			return err
+		}
+
+		if domain.IsExpired(result.ExpiresAt) {
+			err = apperrors.BadParam.Wrap(apperrors.ErrEmailVerifyTokenExpired, "email verify token is already expired")
+			return err
+		}
+
+		userId := result.UserID
+
+		err = u.userRepo.UpdateUser(ctx, userId)
+		if err != nil {
+			err = apperrors.UpdateDataFailed.Wrap(err, "fail to activate user")
+			return err
+		}
+
+		err = u.emailVerifyRepo.DeleteEmailVerifyToken(ctx, token)
+		if err != nil {
+			err = apperrors.DeleteDataFailed.Wrap(err, "fail to delete email verify token")
+			return err
+		}
+		return nil
+	})
+
 	if err != nil {
-		err = apperrors.GetDataFailed.Wrap(err, "fail to get emailVerifyToken")
 		return err
 	}
 
-	if result == nil {
-		err = apperrors.BadParam.Wrap(apperrors.ErrNoData, "User with no verification email sent, or already verified")
-		return err
-	}
-
-	if domain.IsExpired(result.ExpiresAt) {
-		err = apperrors.BadParam.Wrap(apperrors.ErrEmailVerifyTokenExpired, "email verify token is already expired")
-		return err
-	}
-
-	userId := result.UserID
-
-	err = u.userRepo.UpdateUser(ctx, userId)
-	if err != nil {
-		err = apperrors.UpdateDataFailed.Wrap(err, "fail to activate user")
-		return err
-	}
-
-	err = u.emailVerifyRepo.DeleteEmailVerifyToken(ctx, token)
-	if err != nil {
-		err = apperrors.DeleteDataFailed.Wrap(err, "fail to delete email verify token")
-		return err
-	}
 	return nil
 }
 
