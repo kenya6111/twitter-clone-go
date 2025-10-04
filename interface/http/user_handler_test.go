@@ -86,7 +86,7 @@ func TestSignUpHandler_Signup(t *testing.T) {
 		},
 
 		{
-			name: "successfully",
+			name: "failed to signUp",
 			requestBody: map[string]interface{}{
 				"name":            "user1",
 				"email":           "user1@example.com",
