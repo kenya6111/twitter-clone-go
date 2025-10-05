@@ -388,7 +388,7 @@ func (mr *MockEmailVerifyTokenRepositoryMockRecorder) DeleteByToken(ctx, token a
 // FindByToken mocks base method.
 func (m *MockEmailVerifyTokenRepository) FindByToken(ctx context.Context, token string, expiredAt time.Time) (*EmailVerifyToken, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEmailVerifyToken", ctx, token, expiredAt)
+	ret := m.ctrl.Call(m, "FindByToken", ctx, token, expiredAt)
 	ret0, _ := ret[0].(*EmailVerifyToken)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
