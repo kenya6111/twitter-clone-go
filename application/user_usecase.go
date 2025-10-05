@@ -97,7 +97,7 @@ func (u *UserUsecaseImpl) SignUp(ctx context.Context, request SignUpInfo) error 
 			return apperrors.GenerateTokenFailed.Wrap(err, "fail to generate secure token ")
 		}
 
-		_, err := u.emailVerifyRepo.CreateEmailVerifyToken(ctx, createdUser.ID, token)
+		_, err := u.emailVerifyRepo.Save(ctx, createdUser.ID, token)
 		if err != nil {
 			return apperrors.InsertDataFailed.Wrap(err, "fail to insert emailVerifyToken")
 		}
@@ -116,7 +116,7 @@ func (u *UserUsecaseImpl) SignUp(ctx context.Context, request SignUpInfo) error 
 
 func (u *UserUsecaseImpl) Activate(ctx context.Context, token string) error {
 	err := u.transaction.Do(ctx, func(ctx context.Context) error {
-		result, err := u.emailVerifyRepo.GetEmailVerifyToken(ctx, token, time.Now().Add(time.Hour*24))
+		result, err := u.emailVerifyRepo.FindByToken(ctx, token, time.Now().Add(time.Hour*24))
 		if err != nil {
 			err = apperrors.GetDataFailed.Wrap(err, "fail to get emailVerifyToken")
 			return err
@@ -140,7 +140,7 @@ func (u *UserUsecaseImpl) Activate(ctx context.Context, token string) error {
 			return err
 		}
 
-		err = u.emailVerifyRepo.DeleteEmailVerifyToken(ctx, token)
+		err = u.emailVerifyRepo.DeleteByToken(ctx, token)
 		if err != nil {
 			err = apperrors.DeleteDataFailed.Wrap(err, "fail to delete email verify token")
 			return err
