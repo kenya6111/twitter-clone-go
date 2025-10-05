@@ -9,7 +9,7 @@ import (
 )
 
 type EmailVerifyToken struct {
-	ID        int32
+	ID        string
 	UserID    string
 	Token     string
 	ExpiresAt pgtype.Timestamp
