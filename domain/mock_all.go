@@ -356,7 +356,7 @@ func (m *MockEmailVerifyTokenRepository) EXPECT() *MockEmailVerifyTokenRepositor
 	return m.recorder
 }
 
-// CreateEmailVerifyToken mocks base method.
+// Save mocks base method.
 func (m *MockEmailVerifyTokenRepository) Save(ctx context.Context, userId, token string) (*EmailVerifyToken, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Save", ctx, userId, token)
@@ -365,7 +365,7 @@ func (m *MockEmailVerifyTokenRepository) Save(ctx context.Context, userId, token
 	return ret0, ret1
 }
 
-// CreateEmailVerifyToken indicates an expected call of CreateEmailVerifyToken.
+// Save indicates an expected call of Save.
 func (mr *MockEmailVerifyTokenRepositoryMockRecorder) Save(ctx, userId, token any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockEmailVerifyTokenRepository)(nil).Save), ctx, userId, token)
@@ -385,7 +385,6 @@ func (mr *MockEmailVerifyTokenRepositoryMockRecorder) DeleteByToken(ctx, token a
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByToken", reflect.TypeOf((*MockEmailVerifyTokenRepository)(nil).DeleteByToken), ctx, token)
 }
 
-// FindByToken mocks base method.
 func (m *MockEmailVerifyTokenRepository) FindByToken(ctx context.Context, token string, expiredAt time.Time) (*EmailVerifyToken, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByToken", ctx, token, expiredAt)
