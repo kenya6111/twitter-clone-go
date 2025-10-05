@@ -3,52 +3,50 @@ package postgres
 import (
 	"context"
 	"testing"
+	"time"
 	"twitter-clone-go/domain"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func TestEmailVerifyRepository_GetEmailVerifyToken(t *testing.T) {
-	ps, err := domain.NewPassword("hashed_PW1!")
-	if err != nil {
-		panic(1)
-	}
+func TestEmailVerifyRepository_FindByToken(t *testing.T) {
 	tests := []struct {
 		name         string
-		email        string
-		want         *domain.User
+		token        string
+		want         *domain.EmailVerifyToken
 		setupContext func(t *testing.T, db *pgxpool.Pool, tx pgx.Tx) context.Context
 		wantErr      bool
 	}{
 		{
 			name:  "success",
-			email: "user1@example.com",
-			want: &domain.User{
-				ID:       "1",
-				Name:     "user1",
-				Email:    "user1@example.com",
-				Password: ps,
-				IsActive: domain.UserStatusActive,
+			token: "abc123xyztoken",
+			want: &domain.EmailVerifyToken{
+				ID:        "1",
+				UserID:    "1",
+				Token:     "abc123xyztoken",
+				ExpiresAt: time.Now(),
+				CreatedAt: time.Now(),
 			},
 			setupContext: func(t *testing.T, db *pgxpool.Pool, tx pgx.Tx) context.Context {
-				return loadWithTx(t, context.Background(), db, tx, "./testdata/user_repository/default.sql")
+				return loadWithTx(t, context.Background(), db, tx, "./testdata/email_verify_repository/default.sql")
 			},
 			wantErr: false,
 		},
 		{
-			name:  "error when user not found by email",
-			email: "notfound@example.com",
+			name:  "error when email_verify_token not found by token",
+			token: "not_found_by_token",
 			want:  nil,
 			setupContext: func(t *testing.T, db *pgxpool.Pool, tx pgx.Tx) context.Context {
-				return loadWithTx(t, context.Background(), db, tx, "./testdata/user_repository/default.sql")
+				return loadWithTx(t, context.Background(), db, tx, "./testdata/email_verify_repository/default.sql")
 			},
 			wantErr: true,
 		},
 		{
 			name:  "error when context is canceled",
-			email: "user1@example.com",
+			token: "not_found_by_token",
 			want:  nil,
 			setupContext: func(t *testing.T, db *pgxpool.Pool, tx pgx.Tx) context.Context {
 				ctx, cancel := context.WithCancel(context.Background())
@@ -72,8 +70,8 @@ func TestEmailVerifyRepository_GetEmailVerifyToken(t *testing.T) {
 			})
 
 			ctx := tt.setupContext(t, db, tx)
-			r := NewUserRepository(db)
-			got, err := r.FindByEmail(ctx, tt.email)
+			r := NewEmailVerifyRepository(db)
+			got, err := r.FindByToken(ctx, tt.token)
 			if tt.wantErr {
 				if err == nil {
 					t.Fatal("expected error but got none")
@@ -84,9 +82,7 @@ func TestEmailVerifyRepository_GetEmailVerifyToken(t *testing.T) {
 				return
 			}
 			opts := []cmp.Option{
-				cmp.Comparer(func(a, b domain.Password) bool {
-					return a.Value() == b.Value()
-				}),
+				cmpopts.IgnoreFields(domain.EmailVerifyToken{}, "ID", "CreatedAt", "ExpiresAt"),
 			}
 
 			if diff := cmp.Diff(got, tt.want, opts...); diff != "" {
