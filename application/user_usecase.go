@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"time"
 	"twitter-clone-go/apperrors"
 	"twitter-clone-go/domain"
 	"twitter-clone-go/domain/service"
@@ -107,7 +106,7 @@ func (u *UserUsecaseImpl) SignUp(ctx context.Context, request SignUpInfo) error 
 
 func (u *UserUsecaseImpl) Activate(ctx context.Context, token string) error {
 	err := u.transaction.Do(ctx, func(ctx context.Context) error {
-		result, err := u.emailVerifyRepo.FindByToken(ctx, token, time.Now().Add(time.Hour*24))
+		result, err := u.emailVerifyRepo.FindByToken(ctx, token)
 		if err != nil {
 			err = apperrors.GetDataFailed.Wrap(err, "fail to get emailVerifyToken")
 			return err
@@ -118,12 +117,13 @@ func (u *UserUsecaseImpl) Activate(ctx context.Context, token string) error {
 			return err
 		}
 
-		if domain.IsExpired(result.ExpiresAt) {
-			err = apperrors.BadParam.Wrap(apperrors.ErrEmailVerifyTokenExpired, "email verify token is already expired")
+		emailVerifyToken, err := domain.ReconstructEmailVerifyToken(result.ID, result.UserID, result.Token, result.ExpiresAt, result.CreatedAt)
+		if err != nil {
 			return err
 		}
 
-		userId := result.UserID
+		userId := emailVerifyToken.UserID
+		token := emailVerifyToken.Token
 
 		_, err = u.userRepo.UpdateUser(ctx, userId)
 		if err != nil {
