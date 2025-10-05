@@ -84,7 +84,6 @@ func TestSignUpHandler_Signup(t *testing.T) {
 				"Message": "bad request body",
 			},
 		},
-
 		{
 			name: "failed to signUp",
 			requestBody: map[string]interface{}{
@@ -191,5 +190,81 @@ func TestUserHandler_SignUp_InvalidJSON(t *testing.T) {
 	expectedMessage := "bad request body"
 	if responseBody["Message"] != expectedMessage {
 		t.Errorf("Expected message %s, got %s", expectedMessage, responseBody["Message"])
+	}
+}
+
+func TestSignUpHandler_Activate(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	tests := []struct {
+		name string
+		// requestBody    interface{}
+		mockSetup      func(*UserHandlerTester)
+		expectedStatus int
+		expectedBody   interface{}
+	}{
+		{
+			name: "successfully",
+			mockSetup: func(tester *UserHandlerTester) {
+				tester.userUseCase.EXPECT().
+					Activate(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, token string) error {
+						// 入力データの検証
+						if token != "email_verify_token" {
+							t.Errorf("Expected token 'email_verify_token', got %s", token)
+						}
+						return nil
+					})
+			},
+			expectedStatus: http.StatusOK,
+			expectedBody: map[string]interface{}{
+				"code":    "0",
+				"message": "success",
+			},
+		},
+		{
+			name: "failed to activate",
+			mockSetup: func(tester *UserHandlerTester) {
+				tester.userUseCase.EXPECT().
+					Activate(gomock.Any(), gomock.Any()).
+					Return(errors.New("internal error"))
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectedBody: map[string]interface{}{
+				"ErrCode": "U000",
+				"Message": "internal process failed",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			tester := newUserHandlerTester(ctrl)
+			tt.mockSetup(tester)
+
+			// HTTPリクエストの作成
+			req := httptest.NewRequest(http.MethodPost, "/activate", nil)
+			req.Header.Set("Content-Type", "application/json")
+			q := req.URL.Query()
+			q.Add("token", "email_verify_token")
+			req.URL.RawQuery = q.Encode()
+
+			// レスポンスレコーダーの作成
+			w := httptest.NewRecorder()
+
+			// Ginコンテキストの作成
+			c, _ := gin.CreateTestContext(w)
+			c.Request = req
+
+			// ハンドラーの実行
+			tester.Handler.Activate(c)
+
+			// ステータスコードの確認
+			if w.Code != tt.expectedStatus {
+				t.Errorf("Expected status %d, got %d", tt.expectedStatus, w.Code)
+			}
+		})
 	}
 }
