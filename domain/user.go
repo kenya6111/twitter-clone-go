@@ -54,6 +54,31 @@ func NewUser(name string, email string, password string, confirmPassword string)
 	}, nil
 }
 
+func ReconstructUser(id, name, email, hashedPassword string, isActive bool) (*User, error) {
+	if id == "" {
+		return nil, apperrors.BadParam.Wrap(apperrors.ErrMismatchData, "id must not be empty")
+	}
+	if utf8.RuneCountInString(name) < nameLengthMin || utf8.RuneCountInString(name) > nameLengthMax {
+		return nil, apperrors.BadParam.Wrap(apperrors.ErrMismatchData, "Name must be between 1 and 255 characters")
+	}
+	if _, err := mail.ParseAddress(email); err != nil {
+		return nil, apperrors.BadParam.Wrap(err, "invalid email")
+	}
+
+	password, err := NewPasswordHash(hashedPassword)
+	if err != nil {
+		return nil, apperrors.BadParam.Wrap(err, "invalid password")
+	}
+
+	return &User{
+		ID:       id,
+		Name:     name,
+		Email:    email,
+		Password: password,
+		IsActive: isActive,
+	}, nil
+}
+
 type Password struct {
 	value string
 }
@@ -79,9 +104,9 @@ func NewPassword(pass string) (Password, error) {
 	}, nil
 }
 
-func NewHashedPassword(hash string) (Password, error) {
+func NewPasswordHash(hashPassword string) (Password, error) {
 	return Password{
-		value: hash,
+		value: hashPassword,
 	}, nil
 }
 
