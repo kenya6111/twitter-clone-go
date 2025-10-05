@@ -20,7 +20,7 @@ func NewEmailVerifyRepository(pool *pgxpool.Pool) *EmailVerifyRepository {
 	return &EmailVerifyRepository{&client{pool: pool}}
 }
 
-func (ur *EmailVerifyRepository) CreateEmailVerifyToken(ctx context.Context, userId string, token string) (*domain.EmailVerifyToken, error) {
+func (ur *EmailVerifyRepository) Save(ctx context.Context, userId string, token string) (*domain.EmailVerifyToken, error) {
 	q := ur.client.Querier(ctx)
 	expiredAt := pgtype.Timestamp{}
 	_ = expiredAt.Scan(time.Now().Add(24 * time.Hour * 7))
@@ -39,7 +39,7 @@ func (ur *EmailVerifyRepository) CreateEmailVerifyToken(ctx context.Context, use
 	return &emailVerifyToken, nil
 }
 
-func (ur *EmailVerifyRepository) GetEmailVerifyToken(ctx context.Context, token string, expiredAt time.Time) (*domain.EmailVerifyToken, error) {
+func (ur *EmailVerifyRepository) FindByToken(ctx context.Context, token string) (*domain.EmailVerifyToken, error) {
 	q := ur.client.Querier(ctx)
 	args := tutorial.GetEmailVerifyTokenParams{
 		Token: token,
@@ -53,7 +53,7 @@ func (ur *EmailVerifyRepository) GetEmailVerifyToken(ctx context.Context, token 
 	return &emailVerifyToken, nil
 }
 
-func (ur *EmailVerifyRepository) DeleteEmailVerifyToken(ctx context.Context, token string) error {
+func (ur *EmailVerifyRepository) DeleteByToken(ctx context.Context, token string) error {
 	q := ur.client.Querier(ctx)
 	err := q.DeleteEmailVerifyToken(ctx, token)
 	if err != nil {
