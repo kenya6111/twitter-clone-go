@@ -3,7 +3,6 @@ package domain
 import (
 	"context"
 	"reflect"
-	"time"
 
 	"go.uber.org/mock/gomock"
 )
@@ -385,16 +384,16 @@ func (mr *MockEmailVerifyTokenRepositoryMockRecorder) DeleteByToken(ctx, token a
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByToken", reflect.TypeOf((*MockEmailVerifyTokenRepository)(nil).DeleteByToken), ctx, token)
 }
 
-func (m *MockEmailVerifyTokenRepository) FindByToken(ctx context.Context, token string, expiredAt time.Time) (*EmailVerifyToken, error) {
+func (m *MockEmailVerifyTokenRepository) FindByToken(ctx context.Context, token string) (*EmailVerifyToken, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindByToken", ctx, token, expiredAt)
+	ret := m.ctrl.Call(m, "FindByToken", ctx, token)
 	ret0, _ := ret[0].(*EmailVerifyToken)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindByToken indicates an expected call of FindByToken.
-func (mr *MockEmailVerifyTokenRepositoryMockRecorder) FindByToken(ctx, token, expiredAt any) *gomock.Call {
+func (mr *MockEmailVerifyTokenRepositoryMockRecorder) FindByToken(ctx, token any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByToken", reflect.TypeOf((*MockEmailVerifyTokenRepository)(nil).FindByToken), ctx, token, expiredAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByToken", reflect.TypeOf((*MockEmailVerifyTokenRepository)(nil).FindByToken), ctx, token)
 }
