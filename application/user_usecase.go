@@ -125,7 +125,7 @@ func (u *UserUsecaseImpl) Activate(ctx context.Context, token string) error {
 
 		userId := result.UserID
 
-		err = u.userRepo.UpdateUser(ctx, userId)
+		_, err = u.userRepo.UpdateUser(ctx, userId)
 		if err != nil {
 			err = apperrors.UpdateDataFailed.Wrap(err, "fail to activate user")
 			return err
