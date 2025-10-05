@@ -41,11 +41,9 @@ func (ur *UserRepository) FindAll() ([]domain.User, error) {
 }
 
 func (ur *UserRepository) FindByEmail(ctx context.Context, email string) (*domain.User, error) {
-	// q := db.New(ur.client.pool)
 	q := ur.client.Querier(ctx)
 	user, err := q.GetUserByEmail(ctx, email)
 	if err != nil {
-		// log.Println(err.Error() + "@@@")
 		return nil, err
 	}
 	resultSet := toUserDomain(&user)
@@ -53,11 +51,10 @@ func (ur *UserRepository) FindByEmail(ctx context.Context, email string) (*domai
 }
 
 func (ur *UserRepository) CountByEmail(ctx context.Context, email string) (int64, error) {
-	q := db.New(ur.client.pool)
+	q := ur.client.Querier(ctx)
 	resultNum, err := q.CountUsersByEmail(ctx, email)
 	if err != nil {
-		log.Println(err)
-		return 99, err
+		return 1, err
 	}
 	return resultNum, nil
 }
@@ -78,18 +75,19 @@ func (ur *UserRepository) CreateUser(ctx context.Context, name string, email str
 	return &resultSet, nil
 }
 
-func (ur *UserRepository) UpdateUser(ctx context.Context, userId string) error {
+func (ur *UserRepository) UpdateUser(ctx context.Context, userId string) (*domain.User, error) {
 	q := ur.client.Querier(ctx)
 	activateInfo := db.UpdateUserParams{
 		ID:       userId,
 		IsActive: pgBool(true),
 	}
-	err := q.UpdateUser(ctx, activateInfo)
+	user, err := q.UpdateUser(ctx, activateInfo)
 	if err != nil {
 		log.Println(err)
-		return err
+		return nil, err
 	}
-	return nil
+	resultSet := toUserDomain(&user)
+	return &resultSet, nil
 }
 
 func toUserDomain(in *db.User) domain.User {
