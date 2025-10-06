@@ -79,8 +79,6 @@ func (c *client) DB(ctx context.Context) interface{} {
 func (c *client) Querier(ctx context.Context) *db.Queries {
 	tx := c.DB(ctx)
 	if tx, ok := tx.(pgx.Tx); ok {
-		// fmt.Println("------------!!!!!!!!!-")
-		// return db.New(c.pool).WithTx(tx)
 		return db.New(tx)
 	}
 	return db.New(c.pool)

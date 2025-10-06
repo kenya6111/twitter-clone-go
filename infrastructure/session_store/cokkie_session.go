@@ -11,45 +11,10 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// import (
-// 	"context"
-// 	"net/http"
-// 	"twitter-clone-go/apperrors"
-// 	"twitter-clone-go/domain/service"
-
-// 	"github.com/gin-contrib/sessions"
-// 	"github.com/gin-contrib/sessions/cookie"
-// 	"github.com/gin-gonic/gin"
-// )
-
-// Cookieベースのセッションストア
 // Redisベースのセッションストア
 type SessionStore struct {
 	Client *redis.Client
 }
-
-// // 新しいCookieStoreを作成
-// func NewCookieStore(secretKey, domain, httpScheme string, maxAge int) service.SessionStore {
-// 	cookieStore := cookie.NewStore([]byte(secretKey))
-
-// 	sameSite := http.SameSiteDefaultMode
-// 	secure := false
-// 	if httpScheme == "https" {
-// 		secure = true
-// 		sameSite = http.SameSiteNoneMode
-// 	}
-
-// 	cookieStore.Options(sessions.Options{
-// 		Secure:   secure,
-// 		Domain:   domain,
-// 		HttpOnly: true,
-// 		SameSite: sameSite,
-// 		Path:     "/",
-// 		MaxAge:   maxAge,
-// 	})
-
-// 	return &CookieStore{store: cookieStore}
-// }
 
 func NewSessionStore() *SessionStore {
 	sessionStore := redis.NewClient(&redis.Options{
@@ -118,14 +83,6 @@ func (s *SessionStore) Delete(ctx context.Context) error {
 
 // セッションをクリア
 func (s *SessionStore) Clear(ctx context.Context) error {
-	// ginCtx, ok := ctx.Value(GinContextKey).(*gin.Context)
-	// if !ok || ginCtx == nil {
-	// 	return apperrors.ErrInvalidContext
-	// }
-
-	// session := sessions.Default(ginCtx)
-	// session.Clear()
-	// return session.Save()
 	return nil
 }
 
@@ -133,8 +90,3 @@ func (s *SessionStore) Clear(ctx context.Context) error {
 func (s *SessionStore) GetStore() *redis.Client {
 	return s.Client
 }
-
-// GetMiddleware はGin用のセッションミドルウェアを取得
-// func (s *SessionStore) GetMiddleware(sessionName string) interface{} {
-// 	return sessions.Sessions(sessionName, s.client)
-// }

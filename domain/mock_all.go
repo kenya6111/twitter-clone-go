@@ -46,21 +46,6 @@ func (mr *MockUserRepositoryMockRecorder) CountByEmail(c, email any) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByEmail", reflect.TypeOf((*MockUserRepository)(nil).CountByEmail), c, email)
 }
 
-// // CreateEmailVerifyToken mocks base method.
-// func (m *MockUserRepository) CreateEmailVerifyToken(ctx context.Context, userId, token string) (*EmailVerifyToken, error) {
-// 	m.ctrl.T.Helper()
-// 	ret := m.ctrl.Call(m, "CreateEmailVerifyToken", ctx, userId, token)
-// 	ret0, _ := ret[0].(*EmailVerifyToken)
-// 	ret1, _ := ret[1].(error)
-// 	return ret0, ret1
-// }
-
-// // CreateEmailVerifyToken indicates an expected call of CreateEmailVerifyToken.
-// func (mr *MockUserRepositoryMockRecorder) CreateEmailVerifyToken(ctx, userId, token any) *gomock.Call {
-// 	mr.mock.ctrl.T.Helper()
-// 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateEmailVerifyToken", reflect.TypeOf((*MockUserRepository)(nil).CreateEmailVerifyToken), ctx, userId, token)
-// }
-
 // CreateUser mocks base method.
 func (m *MockUserRepository) CreateUser(c context.Context, name string, email string, hash string) (*User, error) {
 	m.ctrl.T.Helper()
@@ -105,35 +90,6 @@ func (mr *MockUserRepositoryMockRecorder) FindByEmail(c, email any) *gomock.Call
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByEmail", reflect.TypeOf((*MockUserRepository)(nil).FindByEmail), c, email)
 }
-
-// DeleteEmailVerifyToken mocks base method.
-// func (m *MockRepository) DeleteEmailVerifyToken(ctx context.Context, token string) error {
-// 	m.ctrl.T.Helper()
-// 	ret := m.ctrl.Call(m, "DeleteEmailVerifyToken", ctx, token)
-// 	ret0, _ := ret[0].(error)
-// 	return ret0
-// }
-
-// // DeleteEmailVerifyToken indicates an expected call of DeleteEmailVerifyToken.
-// func (mr *MockUserRepositoryMockRecorder) DeleteEmailVerifyToken(ctx, token any) *gomock.Call {
-// 	mr.mock.ctrl.T.Helper()
-// 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteEmailVerifyToken", reflect.TypeOf((*MockUserRepository)(nil).DeleteEmailVerifyToken), ctx, token)
-// }
-
-// // GetEmailVerifyToken mocks base method.
-// func (m *MockUserRepository) GetEmailVerifyToken(ctx context.Context, userId, token string, expiredAt time.Time) (*EmailVerifyToken, error) {
-// 	m.ctrl.T.Helper()
-// 	ret := m.ctrl.Call(m, "GetEmailVerifyToken", ctx, userId, token, expiredAt)
-// 	ret0, _ := ret[0].(*EmailVerifyToken)
-// 	ret1, _ := ret[1].(error)
-// 	return ret0, ret1
-// }
-
-// // GetEmailVerifyToken indicates an expected call of GetEmailVerifyToken.
-// func (mr *MockUserRepositoryMockRecorder) GetEmailVerifyToken(ctx, userId, token, expiredAt any) *gomock.Call {
-// 	mr.mock.ctrl.T.Helper()
-// 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEmailVerifyToken", reflect.TypeOf((*MockUserRepository)(nil).GetEmailVerifyToken), ctx, userId, token, expiredAt)
-// }
 
 // ActivateUser mocks base method.
 func (m *MockUserRepository) ActivateUser(ctx context.Context, userId string) (*User, error) {
