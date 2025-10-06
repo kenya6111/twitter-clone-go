@@ -30,6 +30,7 @@ func newUserUsecaseTester(ctrl *gomock.Controller) *UserUsecaseTester {
 		userDomainService = domain.NewMockUserDomainService(ctrl)
 		emailService      = domain.NewMockEmailService(ctrl)
 		passwordHasher    = domain.NewMockPasswordHasher(ctrl)
+		sessionStore      = domain.NewMockSessionStore(ctrl)
 	)
 
 	return &UserUsecaseTester{
@@ -39,7 +40,7 @@ func newUserUsecaseTester(ctrl *gomock.Controller) *UserUsecaseTester {
 		userDomainService: userDomainService,
 		emailService:      emailService,
 		passwordHasher:    passwordHasher,
-		Usecase:           NewUserUsecase(userRepo, emailVerifyRepo, Transaction, userDomainService, emailService, passwordHasher),
+		Usecase:           NewUserUsecase(userRepo, emailVerifyRepo, Transaction, userDomainService, emailService, passwordHasher, sessionStore),
 	}
 }
 func TestUserUsecaseImpl_SignUp(t *testing.T) {
