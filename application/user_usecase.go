@@ -13,15 +13,10 @@ type SignUpInfo struct {
 	Password        string `json:"password" binding:"required"`
 	ConfirmPassword string `json:"confirmPassword" binding:"required"`
 }
-
-type ActivateInfo struct {
-	Token string `json:"token" binding:"required"`
-}
 type LoginInfo struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
 }
-
 type UserUsecaseImpl struct {
 	userRepo          domain.UserRepository
 	emailVerifyRepo   domain.EmailVerifyTokenRepository
@@ -134,7 +129,7 @@ func (u *UserUsecaseImpl) Activate(ctx context.Context, token string) error {
 		userId := emailVerifyToken.UserID
 		token := emailVerifyToken.Token
 
-		_, err = u.userRepo.UpdateUser(ctx, userId)
+		_, err = u.userRepo.ActivateUser(ctx, userId)
 		if err != nil {
 			err = apperrors.UpdateDataFailed.Wrap(err, "fail to activate user")
 			return err

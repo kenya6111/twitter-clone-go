@@ -297,7 +297,7 @@ func TestUserRepository_UpdateUser(t *testing.T) {
 			})
 			ctx := loadWithTx(t, context.Background(), db, tx, "./testdata/user_repository/default.sql")
 			r := NewUserRepository(db)
-			got, err := r.UpdateUser(ctx, tt.userId)
+			got, err := r.ActivateUser(ctx, tt.userId)
 			if tt.wantErr {
 				if err == nil {
 					t.Fatal("expected error but got none")

@@ -75,7 +75,7 @@ func (ur *UserRepository) CreateUser(ctx context.Context, name string, email str
 	return &resultSet, nil
 }
 
-func (ur *UserRepository) UpdateUser(ctx context.Context, userId string) (*domain.User, error) {
+func (ur *UserRepository) ActivateUser(ctx context.Context, userId string) (*domain.User, error) {
 	q := ur.client.Querier(ctx)
 	activateInfo := db.UpdateUserParams{
 		ID:       userId,
@@ -101,7 +101,7 @@ func toUserDomain(in *db.User) domain.User {
 	}
 }
 func toUserDomainForHash(in *db.User) domain.User {
-	p, _ := domain.NewHashedPassword(in.Password)
+	p, _ := domain.NewPasswordHash(in.Password)
 	return domain.User{
 		ID:       in.ID,
 		Name:     in.Name,
