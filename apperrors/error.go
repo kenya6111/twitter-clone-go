@@ -17,8 +17,9 @@ func (myErr *MyAppError) Unwrap() error {
 }
 
 var (
-	ErrNoData         = errors.New("get 0 record from db.Query")
-	ErrDuplicateData  = errors.New("already exist user by email")
-	ErrMismatchData   = errors.New("mismatch password and confirmPassword")
-	ErrNoRequestParam = errors.New("get no value from request")
+	ErrNoData                  = errors.New("get 0 record from db.Query")
+	ErrDuplicateData           = errors.New("already exist user by email")
+	ErrMismatchData            = errors.New("mismatch password and confirmPassword")
+	ErrNoRequestParam          = errors.New("get no value from request")
+	ErrEmailVerifyTokenExpired = errors.New("email verify token is already expired")
 )

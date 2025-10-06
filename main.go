@@ -28,13 +28,14 @@ func main() {
 
 	// リポジトリの注入
 	userRepo := postgres.NewUserRepository(db)
+	emailVerifyRepo := postgres.NewEmailVerifyRepository(db)
 
 	// サービスの注入
 	userDomainService := application.NewUserDomainService(userRepo)
 	passwordHasher := bcrypt.NewBcryptHasher()
 
 	// ユースケースの注入
-	ser := application.NewUserUsecase(userRepo, transaction, userDomainService, emailService, passwordHasher)
+	ser := application.NewUserUsecase(userRepo, emailVerifyRepo, transaction, userDomainService, emailService, passwordHasher)
 
 	// ハンドラーの注入
 	con := http.NewUserHandler(ser)
@@ -46,6 +47,7 @@ func main() {
 	router.GET("/", con.Home)
 	router.GET("/users", con.GetUserList)
 	router.POST("/signup", con.SignUp)
+	router.POST("/activate", con.Activate)
 	router.GET("/health_check", con.HealthCheck)
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)

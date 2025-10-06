@@ -22,8 +22,8 @@ type UserRepository interface {
 	FindAll() ([]User, error)
 	FindByEmail(c context.Context, email string) (*User, error)
 	CountByEmail(c context.Context, email string) (int64, error)
-	CreateUser(c context.Context, email string, hash string) (*User, error)
-	CreateEmailVerifyToken(ctx context.Context, userId string, token string) (*EmailVerifyToken, error)
+	CreateUser(c context.Context, name string, email string, hash string) (*User, error)
+	ActivateUser(ctx context.Context, userId string) (*User, error)
 }
 
 func NewUser(name string, email string, password string, confirmPassword string) (*User, error) {
@@ -54,6 +54,31 @@ func NewUser(name string, email string, password string, confirmPassword string)
 	}, nil
 }
 
+func ReconstructUser(id, name, email, hashedPassword string, isActive bool) (*User, error) {
+	if id == "" {
+		return nil, apperrors.BadParam.Wrap(apperrors.ErrMismatchData, "id must not be empty")
+	}
+	if utf8.RuneCountInString(name) < nameLengthMin || utf8.RuneCountInString(name) > nameLengthMax {
+		return nil, apperrors.BadParam.Wrap(apperrors.ErrMismatchData, "Name must be between 1 and 255 characters")
+	}
+	if _, err := mail.ParseAddress(email); err != nil {
+		return nil, apperrors.BadParam.Wrap(err, "invalid email")
+	}
+
+	password, err := NewPasswordHash(hashedPassword)
+	if err != nil {
+		return nil, apperrors.BadParam.Wrap(err, "invalid password")
+	}
+
+	return &User{
+		ID:       id,
+		Name:     name,
+		Email:    email,
+		Password: password,
+		IsActive: isActive,
+	}, nil
+}
+
 type Password struct {
 	value string
 }
@@ -77,7 +102,11 @@ func NewPassword(pass string) (Password, error) {
 	return Password{
 		value: pass,
 	}, nil
-
+}
+func NewPasswordHash(hashPassword string) (Password, error) {
+	return Password{
+		value: hashPassword,
+	}, nil
 }
 
 func (p Password) Value() string {
@@ -111,6 +140,6 @@ const (
 )
 
 const (
-	UserStatusActive = true
-	UserStatusCancel = false
+	UserStatusActive   = true
+	UserStatusInactive = false
 )

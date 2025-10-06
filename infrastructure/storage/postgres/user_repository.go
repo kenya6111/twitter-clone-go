@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"log"
-	"time"
 
 	"twitter-clone-go/apperrors"
 	"twitter-clone-go/domain"
@@ -42,11 +41,9 @@ func (ur *UserRepository) FindAll() ([]domain.User, error) {
 }
 
 func (ur *UserRepository) FindByEmail(ctx context.Context, email string) (*domain.User, error) {
-	// q := db.New(ur.client.pool)
 	q := ur.client.Querier(ctx)
 	user, err := q.GetUserByEmail(ctx, email)
 	if err != nil {
-		// log.Println(err.Error() + "@@@")
 		return nil, err
 	}
 	resultSet := toUserDomain(&user)
@@ -54,19 +51,18 @@ func (ur *UserRepository) FindByEmail(ctx context.Context, email string) (*domai
 }
 
 func (ur *UserRepository) CountByEmail(ctx context.Context, email string) (int64, error) {
-	q := db.New(ur.client.pool)
+	q := ur.client.Querier(ctx)
 	resultNum, err := q.CountUsersByEmail(ctx, email)
 	if err != nil {
-		log.Println(err)
-		return 99, err
+		return 1, err
 	}
 	return resultNum, nil
 }
 
-func (ur *UserRepository) CreateUser(ctx context.Context, email string, hash string) (*domain.User, error) {
+func (ur *UserRepository) CreateUser(ctx context.Context, name string, email string, hash string) (*domain.User, error) {
 	q := ur.client.Querier(ctx)
 	userInfo := db.CreateUserParams{
-		Name:     email,
+		Name:     name,
 		Email:    email,
 		Password: hash,
 	}
@@ -79,23 +75,19 @@ func (ur *UserRepository) CreateUser(ctx context.Context, email string, hash str
 	return &resultSet, nil
 }
 
-func (ur *UserRepository) CreateEmailVerifyToken(ctx context.Context, userId string, token string) (*domain.EmailVerifyToken, error) {
+func (ur *UserRepository) ActivateUser(ctx context.Context, userId string) (*domain.User, error) {
 	q := ur.client.Querier(ctx)
-	expiredAt := pgtype.Timestamp{}
-	_ = expiredAt.Scan(time.Now().Add(24 * time.Hour * 7))
-
-	args := db.CreateEmailVerifyTokenParams{
-		UserID:    userId,
-		Token:     token,
-		ExpiresAt: expiredAt,
+	activateInfo := db.UpdateUserParams{
+		ID:       userId,
+		IsActive: pgBool(true),
 	}
-	resultSet, err := q.CreateEmailVerifyToken(ctx, args)
+	user, err := q.UpdateUser(ctx, activateInfo)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	emailVerifyToken := toEmailVerifyTokenDomain(&resultSet)
-	return &emailVerifyToken, nil
+	resultSet := toUserDomain(&user)
+	return &resultSet, nil
 }
 
 func toUserDomain(in *db.User) domain.User {
@@ -108,12 +100,5 @@ func toUserDomain(in *db.User) domain.User {
 		IsActive: in.IsActive.Bool,
 	}
 }
-func toEmailVerifyTokenDomain(in *db.EmailVerifyToken) domain.EmailVerifyToken {
-	return domain.EmailVerifyToken{
-		ID:        in.ID,
-		UserID:    in.UserID,
-		Token:     in.Token,
-		ExpiresAt: in.ExpiresAt.Time,
-		CreatedAt: in.CreatedAt.Time,
-	}
-}
+
+func pgBool(b bool) pgtype.Bool { return pgtype.Bool{Bool: b, Valid: true} }
