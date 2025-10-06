@@ -135,19 +135,19 @@ func (mr *MockUserRepositoryMockRecorder) FindByEmail(c, email any) *gomock.Call
 // 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEmailVerifyToken", reflect.TypeOf((*MockUserRepository)(nil).GetEmailVerifyToken), ctx, userId, token, expiredAt)
 // }
 
-// UpdateUser mocks base method.
-func (m *MockUserRepository) UpdateUser(ctx context.Context, userId string) (*User, error) {
+// ActivateUser mocks base method.
+func (m *MockUserRepository) ActivateUser(ctx context.Context, userId string) (*User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUser", ctx, userId)
+	ret := m.ctrl.Call(m, "ActivateUser", ctx, userId)
 	ret0, _ := ret[0].(*User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// UpdateUser indicates an expected call of UpdateUser.
-func (mr *MockUserRepositoryMockRecorder) UpdateUser(ctx, userId any) *gomock.Call {
+// ActivateUser indicates an expected call of ActivateUser.
+func (mr *MockUserRepositoryMockRecorder) ActivateUser(ctx, userId any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockUserRepository)(nil).UpdateUser), ctx, userId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ActivateUser", reflect.TypeOf((*MockUserRepository)(nil).ActivateUser), ctx, userId)
 }
 
 // MockUserDomainService is a mock of UserDomainService interface.

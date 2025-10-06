@@ -75,7 +75,7 @@ func (ur *UserRepository) CreateUser(ctx context.Context, name string, email str
 	return &resultSet, nil
 }
 
-func (ur *UserRepository) UpdateUser(ctx context.Context, userId string) (*domain.User, error) {
+func (ur *UserRepository) ActivateUser(ctx context.Context, userId string) (*domain.User, error) {
 	q := ur.client.Querier(ctx)
 	activateInfo := db.UpdateUserParams{
 		ID:       userId,

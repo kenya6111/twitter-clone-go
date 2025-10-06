@@ -23,7 +23,7 @@ type UserRepository interface {
 	FindByEmail(c context.Context, email string) (*User, error)
 	CountByEmail(c context.Context, email string) (int64, error)
 	CreateUser(c context.Context, name string, email string, hash string) (*User, error)
-	UpdateUser(ctx context.Context, userId string) (*User, error)
+	ActivateUser(ctx context.Context, userId string) (*User, error)
 }
 
 func NewUser(name string, email string, password string, confirmPassword string) (*User, error) {

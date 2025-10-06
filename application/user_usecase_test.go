@@ -297,7 +297,7 @@ func TestUserUsecaseImpl_Activate(t *testing.T) {
 						ExpiresAt: time.Now(),
 						CreatedAt: time.Now(),
 					}, nil),
-					tester.userRepo.EXPECT().UpdateUser(ctx, "1").Return(nil, nil),
+					tester.userRepo.EXPECT().ActivateUser(ctx, "1").Return(nil, nil),
 					tester.emailVerifyRepo.EXPECT().DeleteByToken(ctx, "email_verify_token").Return(nil),
 				)
 			},
@@ -351,7 +351,7 @@ func TestUserUsecaseImpl_Activate(t *testing.T) {
 						CreatedAt: time.Now(),
 					}, nil),
 
-					tester.userRepo.EXPECT().UpdateUser(ctx, "1").Return(nil, errors.New(string(apperrors.UpdateDataFailed))),
+					tester.userRepo.EXPECT().ActivateUser(ctx, "1").Return(nil, errors.New(string(apperrors.UpdateDataFailed))),
 				)
 			},
 			wantErr: true,
@@ -373,7 +373,7 @@ func TestUserUsecaseImpl_Activate(t *testing.T) {
 						ExpiresAt: time.Now(),
 						CreatedAt: time.Now(),
 					}, nil),
-					tester.userRepo.EXPECT().UpdateUser(ctx, "1").Return(nil, nil),
+					tester.userRepo.EXPECT().ActivateUser(ctx, "1").Return(nil, nil),
 					tester.emailVerifyRepo.EXPECT().DeleteByToken(ctx, "email_verify_token").Return(errors.New(string(apperrors.DeleteDataFailed))),
 				)
 			},
