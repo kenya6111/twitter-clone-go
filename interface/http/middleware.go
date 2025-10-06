@@ -1,6 +1,7 @@
 package http
 
 import (
+	"net/http"
 	"twitter-clone-go/infrastructure/session_store"
 
 	"github.com/gin-gonic/gin"
@@ -15,12 +16,19 @@ func CheckLogin(s *session_store.SessionStore) gin.HandlerFunc {
 		redisKey, _ := c.Cookie(cookieKey)
 		cmd, err := s.Client.Get(c.Request.Context(), "session:"+redisKey).Result()
 		if err != nil {
-			c.Abort()
+
+			c.AbortWithStatusJSON(http.StatusUnauthorized, APIResponse{
+				ErrCode: "S013",
+				Message: "session expired or not found",
+			})
 			return
 		}
 		if len(cmd) == 0 {
-			c.Redirect(202, "/")
-			c.Abort()
+			c.AbortWithStatusJSON(http.StatusUnauthorized, APIResponse{
+				ErrCode: "S013",
+				Message: "session expired or not found",
+			})
+			return
 		} else {
 			c.Next()
 		}
