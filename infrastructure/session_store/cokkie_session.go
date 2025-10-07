@@ -42,8 +42,6 @@ func (s *SessionStore) Set(ctx context.Context, value interface{}) error {
 	if !ok || ginCtx == nil {
 		return apperrors.ErrInvalidContext
 	}
-	fmt.Println("redisKey:!!! " + redisKey)
-	fmt.Println(value)
 	ginCtx.SetCookie("sid", redisKey, 3600, "/", "localhost", false, false)
 	return nil
 }
@@ -75,7 +73,6 @@ func (s *SessionStore) Delete(ctx context.Context) error {
 		return apperrors.ErrInvalidContext
 	}
 	redisKey, _ := ginCtx.Cookie("sid")
-	fmt.Println("redisKey: !!!!!!!!!!!!!" + redisKey)
 	s.Client.Del(ginCtx, "session:"+redisKey)
 	ginCtx.SetCookie("sid", "", -1, "/", "localhost", false, false)
 	return nil
