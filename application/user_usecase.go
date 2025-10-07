@@ -13,10 +13,12 @@ type SignUpInfo struct {
 	Password        string `json:"password" binding:"required"`
 	ConfirmPassword string `json:"confirmPassword" binding:"required"`
 }
+
 type LoginInfo struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
 }
+
 type UserUsecaseImpl struct {
 	userRepo          domain.UserRepository
 	emailVerifyRepo   domain.EmailVerifyTokenRepository
