@@ -91,3 +91,68 @@ func TestEmailVerifyRepository_FindByToken(t *testing.T) {
 		})
 	}
 }
+
+func TestEmailVerifyRepository_Save(t *testing.T) {
+	tests := []struct {
+		name    string
+		userId  string
+		token   string
+		want    *domain.EmailVerifyToken
+		wantErr bool
+	}{
+		{
+			name:   "successfully",
+			userId: "3",
+			token:  "email_verify_token",
+			want: &domain.EmailVerifyToken{
+				ID:        "1",
+				UserID:    "3",
+				Token:     "email_verify_token",
+				ExpiresAt: time.Now(),
+				CreatedAt: time.Now(),
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			db, tx, err := setup(t)
+			if err != nil {
+				t.Fatalf("failed to setup database: %v", err)
+			}
+			t.Cleanup(func() {
+				if err := cleanup(context.Background(), t, db, tx); err != nil {
+					t.Fatalf("failed to cleanup database: %v", err)
+				}
+			})
+			ctx := loadWithTx(t, context.Background(), db, tx, "./testdata/email_verify_repository/default.sql")
+			r := NewEmailVerifyRepository(db)
+			got, err := r.Save(ctx, tt.userId, tt.token)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("expected error but got none")
+				}
+				if got != nil {
+					t.Fatalf("expected nil result on error, got: %+v", got)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			// IDとタイムスタンプを無視して比較
+			opts := []cmp.Option{
+				cmpopts.IgnoreFields(domain.EmailVerifyToken{}, "ID", "ExpiresAt", "CreatedAt"),
+			}
+			if diff := cmp.Diff(got, tt.want, opts...); diff != "" {
+				t.Fatalf("mismatch (-got +want):\n%s", diff)
+			}
+			// IDが設定されていることを確認
+			if got.ID == "" {
+				t.Fatal("ID should be set")
+			}
+		})
+	}
+}
