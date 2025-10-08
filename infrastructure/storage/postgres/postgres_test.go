@@ -50,9 +50,6 @@ func setup(t *testing.T) (db *pgxpool.Pool, tx pgx.Tx, err error) { // OK
 }
 
 func cleanup(ctx context.Context, t *testing.T, db *pgxpool.Pool, tx pgx.Tx) error {
-	// if err := tx; err != nil {
-	// 	t.Errorf("transaction error: %v", err)
-	// }
 	if err := tx.Rollback(ctx); err != nil {
 		t.Fatalf("failed to rollback transaction: %v", err)
 	}

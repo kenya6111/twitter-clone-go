@@ -23,6 +23,8 @@ func ErrorHandler(c *gin.Context, err error) {
 	switch appErr.ErrCode {
 	case apperrors.NAData:
 		statusCode = http.StatusNotFound
+	case apperrors.Unauthorized:
+		statusCode = http.StatusUnauthorized
 	case apperrors.NoTargetData, apperrors.ReqBodyDecodeFailed, apperrors.BadParam, apperrors.DuplicateData:
 		statusCode = http.StatusBadRequest
 	default:

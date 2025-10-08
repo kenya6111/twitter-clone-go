@@ -1,8 +1,10 @@
 package http
 
 import (
+	"context"
 	"twitter-clone-go/apperrors"
 	"twitter-clone-go/application"
+	"twitter-clone-go/infrastructure/session_store"
 
 	"github.com/gin-gonic/gin"
 )
@@ -54,4 +56,34 @@ func (h *UserHandler) Activate(c *gin.Context) {
 		return
 	}
 	SuccessResponse(c, nil)
+}
+
+func (h *UserHandler) Login(c *gin.Context) {
+	var request application.LoginInfo
+	if err := c.BindJSON(&request); err != nil {
+		err = apperrors.ReqBodyDecodeFailed.Wrap(err, "bad request body")
+		ErrorHandler(c, err)
+		return
+	}
+	ctx := context.WithValue(c.Request.Context(), session_store.GinContextKey, c)
+
+	user, err := h.usecase.Login(ctx, request)
+	if err != nil {
+		// emailの存在チェックをされないように、一律のエラーを返す
+		ErrorHandler(c, apperrors.ErrUnauthorized)
+		return
+	}
+	SuccessResponse(c, user)
+}
+
+func (h *UserHandler) Logout(c *gin.Context) {
+	ctx := context.WithValue(c.Request.Context(), session_store.GinContextKey, c)
+	err := h.usecase.Logout(ctx)
+	if err != nil {
+		// emailの存在チェックをされないように、一律のエラーを返す
+		ErrorHandler(c, apperrors.ErrLogout)
+		return
+	}
+	SuccessResponse(c, nil)
+
 }

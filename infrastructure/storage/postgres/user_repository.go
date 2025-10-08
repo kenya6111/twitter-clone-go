@@ -46,7 +46,7 @@ func (ur *UserRepository) FindByEmail(ctx context.Context, email string) (*domai
 	if err != nil {
 		return nil, err
 	}
-	resultSet := toUserDomain(&user)
+	resultSet := toUserDomainForHash(&user)
 	return &resultSet, nil
 }
 
@@ -92,6 +92,16 @@ func (ur *UserRepository) ActivateUser(ctx context.Context, userId string) (*dom
 
 func toUserDomain(in *db.User) domain.User {
 	p, _ := domain.NewPassword(in.Password)
+	return domain.User{
+		ID:       in.ID,
+		Name:     in.Name,
+		Email:    in.Email,
+		Password: p,
+		IsActive: in.IsActive.Bool,
+	}
+}
+func toUserDomainForHash(in *db.User) domain.User {
+	p, _ := domain.NewPasswordHash(in.Password)
 	return domain.User{
 		ID:       in.ID,
 		Name:     in.Name,

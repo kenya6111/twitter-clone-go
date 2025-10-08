@@ -17,6 +17,8 @@ const (
 	SendMailFailed      ErrCode = "S010"
 	SessionSaveFailed   ErrCode = "S011"
 	SendEmailFailed     ErrCode = "S012"
+	Unauthorized        ErrCode = "S013"
+	LogoutFailed        ErrCode = "S014"
 
 	ReqBodyDecodeFailed ErrCode = "R001"
 	BadParam            ErrCode = "R002"

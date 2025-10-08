@@ -46,21 +46,6 @@ func (mr *MockUserRepositoryMockRecorder) CountByEmail(c, email any) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByEmail", reflect.TypeOf((*MockUserRepository)(nil).CountByEmail), c, email)
 }
 
-// // CreateEmailVerifyToken mocks base method.
-// func (m *MockUserRepository) CreateEmailVerifyToken(ctx context.Context, userId, token string) (*EmailVerifyToken, error) {
-// 	m.ctrl.T.Helper()
-// 	ret := m.ctrl.Call(m, "CreateEmailVerifyToken", ctx, userId, token)
-// 	ret0, _ := ret[0].(*EmailVerifyToken)
-// 	ret1, _ := ret[1].(error)
-// 	return ret0, ret1
-// }
-
-// // CreateEmailVerifyToken indicates an expected call of CreateEmailVerifyToken.
-// func (mr *MockUserRepositoryMockRecorder) CreateEmailVerifyToken(ctx, userId, token any) *gomock.Call {
-// 	mr.mock.ctrl.T.Helper()
-// 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateEmailVerifyToken", reflect.TypeOf((*MockUserRepository)(nil).CreateEmailVerifyToken), ctx, userId, token)
-// }
-
 // CreateUser mocks base method.
 func (m *MockUserRepository) CreateUser(c context.Context, name string, email string, hash string) (*User, error) {
 	m.ctrl.T.Helper()
@@ -105,35 +90,6 @@ func (mr *MockUserRepositoryMockRecorder) FindByEmail(c, email any) *gomock.Call
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByEmail", reflect.TypeOf((*MockUserRepository)(nil).FindByEmail), c, email)
 }
-
-// DeleteEmailVerifyToken mocks base method.
-// func (m *MockRepository) DeleteEmailVerifyToken(ctx context.Context, token string) error {
-// 	m.ctrl.T.Helper()
-// 	ret := m.ctrl.Call(m, "DeleteEmailVerifyToken", ctx, token)
-// 	ret0, _ := ret[0].(error)
-// 	return ret0
-// }
-
-// // DeleteEmailVerifyToken indicates an expected call of DeleteEmailVerifyToken.
-// func (mr *MockUserRepositoryMockRecorder) DeleteEmailVerifyToken(ctx, token any) *gomock.Call {
-// 	mr.mock.ctrl.T.Helper()
-// 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteEmailVerifyToken", reflect.TypeOf((*MockUserRepository)(nil).DeleteEmailVerifyToken), ctx, token)
-// }
-
-// // GetEmailVerifyToken mocks base method.
-// func (m *MockUserRepository) GetEmailVerifyToken(ctx context.Context, userId, token string, expiredAt time.Time) (*EmailVerifyToken, error) {
-// 	m.ctrl.T.Helper()
-// 	ret := m.ctrl.Call(m, "GetEmailVerifyToken", ctx, userId, token, expiredAt)
-// 	ret0, _ := ret[0].(*EmailVerifyToken)
-// 	ret1, _ := ret[1].(error)
-// 	return ret0, ret1
-// }
-
-// // GetEmailVerifyToken indicates an expected call of GetEmailVerifyToken.
-// func (mr *MockUserRepositoryMockRecorder) GetEmailVerifyToken(ctx, userId, token, expiredAt any) *gomock.Call {
-// 	mr.mock.ctrl.T.Helper()
-// 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEmailVerifyToken", reflect.TypeOf((*MockUserRepository)(nil).GetEmailVerifyToken), ctx, userId, token, expiredAt)
-// }
 
 // ActivateUser mocks base method.
 func (m *MockUserRepository) ActivateUser(ctx context.Context, userId string) (*User, error) {
@@ -396,4 +352,123 @@ func (m *MockEmailVerifyTokenRepository) FindByToken(ctx context.Context, token 
 func (mr *MockEmailVerifyTokenRepositoryMockRecorder) FindByToken(ctx, token any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByToken", reflect.TypeOf((*MockEmailVerifyTokenRepository)(nil).FindByToken), ctx, token)
+}
+
+// MockSessionStore is a mock of SessionStore interface.
+type MockSessionStore struct {
+	ctrl     *gomock.Controller
+	recorder *MockSessionStoreMockRecorder
+	isgomock struct{}
+}
+
+// MockSessionStoreMockRecorder is the mock recorder for MockSessionStore.
+type MockSessionStoreMockRecorder struct {
+	mock *MockSessionStore
+}
+
+// NewMockSessionStore creates a new mock instance.
+func NewMockSessionStore(ctrl *gomock.Controller) *MockSessionStore {
+	mock := &MockSessionStore{ctrl: ctrl}
+	mock.recorder = &MockSessionStoreMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockSessionStore) EXPECT() *MockSessionStoreMockRecorder {
+	return m.recorder
+}
+
+// Clear mocks base method.
+func (m *MockSessionStore) Clear(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Clear", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Clear indicates an expected call of Clear.
+func (mr *MockSessionStoreMockRecorder) Clear(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Clear", reflect.TypeOf((*MockSessionStore)(nil).Clear), ctx)
+}
+
+// Delete mocks base method.
+func (m *MockSessionStore) Delete(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockSessionStoreMockRecorder) Delete(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockSessionStore)(nil).Delete), ctx)
+}
+
+// Get mocks base method.
+func (m *MockSessionStore) Get(ctx context.Context, key string) (any, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", ctx, key)
+	ret0, _ := ret[0].(any)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockSessionStoreMockRecorder) Get(ctx, key any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSessionStore)(nil).Get), ctx, key)
+}
+
+// Set mocks base method.
+func (m *MockSessionStore) Set(ctx context.Context, value any) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Set", ctx, value)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Set indicates an expected call of Set.
+func (mr *MockSessionStoreMockRecorder) Set(ctx, value any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockSessionStore)(nil).Set), ctx, value)
+}
+
+// MockSessionMiddleware is a mock of SessionMiddleware interface.
+type MockSessionMiddleware struct {
+	ctrl     *gomock.Controller
+	recorder *MockSessionMiddlewareMockRecorder
+	isgomock struct{}
+}
+
+// MockSessionMiddlewareMockRecorder is the mock recorder for MockSessionMiddleware.
+type MockSessionMiddlewareMockRecorder struct {
+	mock *MockSessionMiddleware
+}
+
+// NewMockSessionMiddleware creates a new mock instance.
+func NewMockSessionMiddleware(ctrl *gomock.Controller) *MockSessionMiddleware {
+	mock := &MockSessionMiddleware{ctrl: ctrl}
+	mock.recorder = &MockSessionMiddlewareMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockSessionMiddleware) EXPECT() *MockSessionMiddlewareMockRecorder {
+	return m.recorder
+}
+
+// GetMiddleware mocks base method.
+func (m *MockSessionMiddleware) GetMiddleware(sessionName string) any {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMiddleware", sessionName)
+	ret0, _ := ret[0].(any)
+	return ret0
+}
+
+// GetMiddleware indicates an expected call of GetMiddleware.
+func (mr *MockSessionMiddlewareMockRecorder) GetMiddleware(sessionName any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMiddleware", reflect.TypeOf((*MockSessionMiddleware)(nil).GetMiddleware), sessionName)
 }
