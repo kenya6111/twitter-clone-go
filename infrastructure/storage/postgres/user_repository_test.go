@@ -253,7 +253,7 @@ func TestUserRepository_CreateUser(t *testing.T) {
 		})
 	}
 }
-func TestUserRepository_UpdateUser(t *testing.T) {
+func TestUserRepository_ActivateUser(t *testing.T) {
 
 	ps, err := domain.NewPassword("hashed_PW1!")
 	if err != nil {
