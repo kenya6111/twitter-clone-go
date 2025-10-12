@@ -18,6 +18,7 @@ type UserUsecaseTester struct {
 	userDomainService *domain.MockUserDomainService
 	emailService      *domain.MockEmailService
 	passwordHasher    *domain.MockPasswordHasher
+	sessionStore      *domain.MockSessionStore
 
 	Usecase UserUsecase
 }
@@ -40,6 +41,7 @@ func newUserUsecaseTester(ctrl *gomock.Controller) *UserUsecaseTester {
 		userDomainService: userDomainService,
 		emailService:      emailService,
 		passwordHasher:    passwordHasher,
+		sessionStore:      sessionStore,
 		Usecase:           NewUserUsecase(userRepo, emailVerifyRepo, Transaction, userDomainService, emailService, passwordHasher, sessionStore),
 	}
 }
@@ -393,6 +395,144 @@ func TestUserUsecaseImpl_Activate(t *testing.T) {
 			}
 			err := tester.Usecase.Activate(ctx, tt.token)
 
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("expected error but got none")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}
+
+func TestUserUsecaseImpl_Login(t *testing.T) {
+	ctx := context.Background()
+
+	password, err := domain.NewPassword("Password1234!")
+	if err != nil {
+		panic(1)
+	}
+
+	tests := []struct {
+		name       string
+		request    *LoginInfo
+		mockExpect func(tester *UserUsecaseTester)
+		wantErr    bool
+	}{
+		{
+			name: "should login successfully",
+			request: &LoginInfo{
+				Email:    "user1@example.com",
+				Password: "Password1234!",
+			},
+			mockExpect: func(tester *UserUsecaseTester) {
+				gomock.InOrder(
+					tester.userRepo.EXPECT().FindByEmail(ctx, "user1@example.com").Return(&domain.User{
+						ID:       "1",
+						Name:     "user1",
+						Email:    "user1@example.com",
+						Password: password,
+						IsActive: true,
+					}, nil),
+					tester.passwordHasher.EXPECT().CompareHashAndPassword("Password1234!", "Password1234!").Return(nil),
+					tester.sessionStore.EXPECT().Set(ctx, "1").Return(nil),
+				)
+			},
+			wantErr: false,
+		},
+		{
+			name: "should not login when FindByEmail fail",
+			request: &LoginInfo{
+				Email:    "user1@example.com",
+				Password: "Password1234!",
+			},
+			mockExpect: func(tester *UserUsecaseTester) {
+				gomock.InOrder(
+					tester.userRepo.EXPECT().FindByEmail(ctx, "user1@example.com").Return(nil, errors.New(string(apperrors.NoTargetData))))
+			},
+			wantErr: true,
+		},
+		{
+			name: "should not login when user is not be active",
+			request: &LoginInfo{
+				Email:    "user1@example.com",
+				Password: "Password1234!",
+			},
+			mockExpect: func(tester *UserUsecaseTester) {
+				gomock.InOrder(
+					tester.userRepo.EXPECT().FindByEmail(ctx, "user1@example.com").Return(&domain.User{
+						ID:       "1",
+						Name:     "user1",
+						Email:    "user1@example.com",
+						Password: password,
+						IsActive: false,
+					}, nil),
+					// tester.passwordHasher.EXPECT().CompareHashAndPassword("Password1234!", "Password1234!").Return(nil),
+					// tester.sessionStore.EXPECT().Set(ctx, "1").Return(nil),
+				)
+
+			},
+			wantErr: true,
+		},
+		{
+			name: "should not login when password is invalid",
+			request: &LoginInfo{
+				Email:    "user1@example.com",
+				Password: "Password1234!!",
+			},
+			mockExpect: func(tester *UserUsecaseTester) {
+				gomock.InOrder(
+					tester.userRepo.EXPECT().FindByEmail(ctx, "user1@example.com").Return(&domain.User{
+						ID:       "1",
+						Name:     "user1",
+						Email:    "user1@example.com",
+						Password: password,
+						IsActive: true,
+					}, nil),
+					tester.passwordHasher.EXPECT().CompareHashAndPassword("Password1234!", "Password1234!!").Return(errors.New(string(apperrors.Unauthorized))),
+					// tester.sessionStore.EXPECT().Set(ctx, "1").Return(nil),
+				)
+
+			},
+			wantErr: true,
+		},
+		{
+			name: "should not login when password is invalid",
+			request: &LoginInfo{
+				Email:    "user1@example.com",
+				Password: "Password1234!!",
+			},
+			mockExpect: func(tester *UserUsecaseTester) {
+				gomock.InOrder(
+					tester.userRepo.EXPECT().FindByEmail(ctx, "user1@example.com").Return(&domain.User{
+						ID:       "1",
+						Name:     "user1",
+						Email:    "user1@example.com",
+						Password: password,
+						IsActive: true,
+					}, nil),
+					tester.passwordHasher.EXPECT().CompareHashAndPassword("Password1234!", "Password1234!!").Return(nil),
+					tester.sessionStore.EXPECT().Set(ctx, "1").Return(errors.New(string(apperrors.Unauthorized))),
+				)
+
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			tester := newUserUsecaseTester(ctrl)
+			if me := tt.mockExpect; me != nil {
+				me(tester)
+			}
+			_, err := tester.Usecase.Login(ctx, *tt.request)
 			if tt.wantErr {
 				if err == nil {
 					t.Fatal("expected error but got none")

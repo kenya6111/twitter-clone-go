@@ -1,7 +1,8 @@
 INSERT INTO users (id, name, email, password, is_active)
 VALUES
   ('1', 'user1', 'user1@example.com', 'hashed_PW1!', TRUE),
-  ('2', 'user2', 'user2@example.com', 'hashed_PW2!', FALSE);
+  ('2', 'user2', 'user2@example.com', 'hashed_PW2!', FALSE),
+  ('3', 'user3', 'user3@example.com', 'hashed_PW2!', FALSE);
 
 
 INSERT INTO email_verify_token (user_id, token, expires_at, created_at)

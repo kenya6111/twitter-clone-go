@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 	"twitter-clone-go/application"
+	"twitter-clone-go/domain"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/mock/gomock"
@@ -260,6 +261,100 @@ func TestSignUpHandler_Activate(t *testing.T) {
 
 			// ハンドラーの実行
 			tester.Handler.Activate(c)
+
+			// ステータスコードの確認
+			if w.Code != tt.expectedStatus {
+				t.Errorf("Expected status %d, got %d", tt.expectedStatus, w.Code)
+			}
+		})
+	}
+}
+func TestSignUpHandler_Login(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	tests := []struct {
+		name           string
+		requestBody    interface{}
+		mockSetup      func(*UserHandlerTester)
+		expectedStatus int
+		expectedBody   interface{}
+	}{
+		{
+			name: "successfully",
+			requestBody: map[string]interface{}{
+				"email":    "user1@example.com",
+				"password": "Password1234!",
+			},
+			mockSetup: func(tester *UserHandlerTester) {
+				tester.userUseCase.EXPECT().
+					Login(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, input application.LoginInfo) (*domain.User, error) {
+						// 入力データの検証
+						if input.Email != "user1@example.com" {
+							t.Errorf("Expected email 'user1@example.com', got %s", input.Email)
+						}
+						if input.Password != "Password1234!" {
+							t.Errorf("Expected role 'Password1234!', got %s", input.Password)
+						}
+						return &domain.User{
+							ID:       "1",
+							Name:     "user1",
+							Email:    "user1@example.com",
+							IsActive: true,
+						}, nil
+					})
+			},
+			expectedStatus: http.StatusOK,
+			expectedBody: map[string]interface{}{
+				"code":    "0",
+				"message": "success",
+			},
+		},
+		{
+			name: "failed to login",
+			requestBody: map[string]interface{}{
+				"email":    "user1@example.com",
+				"password": "Password1234!",
+			},
+			mockSetup: func(tester *UserHandlerTester) {
+				tester.userUseCase.EXPECT().
+					Login(gomock.Any(), gomock.Any()).
+					Return(nil, errors.New("internal error"))
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectedBody: map[string]interface{}{
+				"ErrCode": "U000",
+				"Message": "internal process failed",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			tester := newUserHandlerTester(ctrl)
+			tt.mockSetup(tester)
+
+			// リクエストボディの準備
+			jsonBody, err := json.Marshal(tt.requestBody)
+			if err != nil {
+				t.Fatalf("Failed to marshal request body: %v", err)
+			}
+
+			// HTTPリクエストの作成
+			req := httptest.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(jsonBody))
+			req.Header.Set("Content-Type", "application/json")
+
+			// レスポンスレコーダーの作成
+			w := httptest.NewRecorder()
+
+			// Ginコンテキストの作成
+			c, _ := gin.CreateTestContext(w)
+			c.Request = req
+
+			// ハンドラーの実行
+			tester.Handler.Login(c)
 
 			// ステータスコードの確認
 			if w.Code != tt.expectedStatus {
