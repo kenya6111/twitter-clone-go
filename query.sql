@@ -48,3 +48,50 @@ AND user_id = $2;
 -- name: DeleteEmailVerifyToken :exec
 DELETE FROM email_verify_token
 WHERE  token = $1;
+
+
+-- name: CreateTweet :one
+INSERT INTO tweet (
+  user_id, content, img_url, reply_to_id
+) VALUES (
+  $1, $2, $3, $4
+)
+RETURNING *;
+
+-- name: GetTweet :one
+SELECT * FROM tweet
+WHERE id = $1;
+
+-- name: ListUserTweets :many
+SELECT * FROM tweet
+WHERE user_id = $1
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3;
+
+-- name: ListTimeline :many
+SELECT t.*
+FROM tweet t
+ORDER BY t.created_at DESC
+LIMIT $1 OFFSET $2;
+
+-- name: ListReplies :many
+SELECT * FROM tweet
+WHERE reply_to_id = $1
+ORDER BY created_at ASC;
+
+-- name: UpdateTweetContent :one
+UPDATE tweet
+SET content = $2,
+    img_url  = $3
+WHERE id = $1
+  AND user_id = $4
+RETURNING *;
+
+-- name: DeleteTweet :exec
+DELETE FROM tweet
+WHERE id = $1
+  AND user_id = $2;
+
+-- name: CountUserTweets :one
+SELECT count(*) FROM tweet
+WHERE user_id = $1;
