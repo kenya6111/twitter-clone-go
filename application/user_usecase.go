@@ -90,7 +90,7 @@ func (u *UserUsecaseImpl) SignUp(ctx context.Context, request SignUpInfo) error 
 
 		token, err = u.passwordHasher.GenerateSecureToken(32)
 		if err != nil {
-			return apperrors.GenerateTokenFailed.Wrap(err, "fail to generate secure token ")
+			return apperrors.GenerateTokenFailed.Wrap(err, "fail to generate secure token")
 		}
 
 		_, err := u.emailVerifyRepo.Save(ctx, createdUser.ID, token)
@@ -119,7 +119,7 @@ func (u *UserUsecaseImpl) Activate(ctx context.Context, token string) error {
 		}
 
 		if result == nil {
-			err = apperrors.BadParam.Wrap(apperrors.ErrNoData, "User with no verification email sent, or already verified")
+			err = apperrors.ReqBadParam.Wrap(apperrors.ErrNoData, "User with no verification email sent, or already verified")
 			return err
 		}
 
@@ -155,21 +155,21 @@ func (u *UserUsecaseImpl) Activate(ctx context.Context, token string) error {
 func (u *UserUsecaseImpl) Login(ctx context.Context, request LoginInfo) (*domain.User, error) {
 	user, err := u.userRepo.FindByEmail(ctx, request.Email)
 	if err != nil {
-		return nil, apperrors.Unauthorized.Wrap(err, "fail to get user data")
+		return nil, apperrors.AuthUnauthorized.Wrap(err, "fail to get user data")
 	}
 
 	if !user.IsActive {
-		return nil, apperrors.Unauthorized.Wrap(err, "user is not be activated")
+		return nil, apperrors.AuthUnauthorized.Wrap(err, "user is not be activated")
 	}
 
 	err = u.passwordHasher.CompareHashAndPassword(user.Password.Value(), request.Password)
 	if err != nil {
-		return nil, apperrors.Unauthorized.Wrap(err, "password is invalid")
+		return nil, apperrors.AuthUnauthorized.Wrap(err, "password is invalid")
 	}
 
 	err = u.sessionStore.Set(ctx, user.ID)
 	if err != nil {
-		return nil, apperrors.Unauthorized.Wrap(err, "")
+		return nil, apperrors.AuthUnauthorized.Wrap(err, "")
 	}
 
 	return user, nil
@@ -179,7 +179,7 @@ func (u *UserUsecaseImpl) Login(ctx context.Context, request LoginInfo) (*domain
 func (u *UserUsecaseImpl) Logout(ctx context.Context) error {
 	err := u.sessionStore.Delete(ctx)
 	if err != nil {
-		return apperrors.LogoutFailed.Wrap(err, "")
+		return apperrors.AuthLogoutFailed.Wrap(err, "")
 	}
 	return nil
 }
