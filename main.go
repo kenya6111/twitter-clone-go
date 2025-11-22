@@ -6,6 +6,7 @@ import (
 	"twitter-clone-go/infrastructure/email/mailcatcher"
 	bcrypt "twitter-clone-go/infrastructure/password_hasher"
 	"twitter-clone-go/infrastructure/session_store"
+	"twitter-clone-go/infrastructure/storage/file"
 	"twitter-clone-go/infrastructure/storage/postgres"
 	"twitter-clone-go/interface/http"
 
@@ -29,28 +30,38 @@ func main() {
 	userRepo := postgres.NewUserRepository(db)
 	emailVerifyRepo := postgres.NewEmailVerifyRepository(db)
 
+	tweetRepo := postgres.NewTweetRepository(db)
+
 	// サービスの注入
 	userDomainService := application.NewUserDomainService(userRepo)
 	passwordHasher := bcrypt.NewBcryptHasher()
 	sessionStore := session_store.NewSessionStore()
+	fileUploadService := file.NewLocalFileUploader()
 
 	// ユースケースの注入
-	ser := application.NewUserUsecase(userRepo, emailVerifyRepo, transaction, userDomainService, emailService, passwordHasher, sessionStore)
+	userUscase := application.NewUserUsecase(userRepo, emailVerifyRepo, transaction, userDomainService, emailService, passwordHasher, sessionStore)
+
+	tweetUsecase := application.NewTweetUsecase(tweetRepo, transaction, fileUploadService)
 
 	// ハンドラーの注入
-	con := http.NewUserHandler(ser)
+	userCon := http.NewUserHandler(userUscase)
+	tweetCon := http.NewTweetHandler(tweetUsecase)
 
 	router := gin.Default()
-	router.GET("/", con.Home)
-	router.POST("/signup", con.SignUp)
-	router.POST("/activate", con.Activate)
-	router.POST("/login", con.Login)
-	router.POST("/logout", con.Logout)
-	router.GET("/health_check", con.HealthCheck)
+	router.GET("/", userCon.Home)
+	router.POST("/signup", userCon.SignUp)
+	router.POST("/activate", userCon.Activate)
+	router.POST("/login", userCon.Login)
+	router.POST("/logout", userCon.Logout)
+	router.GET("/health_check", userCon.HealthCheck)
 
 	loginCheckGroup := router.Group("/")
 	loginCheckGroup.Use(http.CheckLogin(sessionStore))
-	loginCheckGroup.GET("/users", con.GetUserList)
+	loginCheckGroup.GET("/users", userCon.GetUserList)
+	router.POST("/tweets", tweetCon.CreateTweet)
+	// loginCheckGroup.GET("/tweets", tweetCon.CreateTweet) 一覧取得
+	// loginCheckGroup.GET("/tweets/:id", tweetCon.CreateTweet) 詳細取得
+	// loginCheckGroup.DELETE("/tweets/:id", tweetCon.CreateTweet) ツイート削除
 
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)
