@@ -58,7 +58,7 @@ func main() {
 	loginCheckGroup := router.Group("/")
 	loginCheckGroup.Use(http.CheckLogin(sessionStore))
 	loginCheckGroup.GET("/users", userCon.GetUserList)
-	router.POST("/tweets", tweetCon.CreateTweet)
+	loginCheckGroup.POST("/tweets", tweetCon.CreateTweet)
 	// loginCheckGroup.GET("/tweets", tweetCon.CreateTweet) 一覧取得
 	// loginCheckGroup.GET("/tweets/:id", tweetCon.CreateTweet) 詳細取得
 	// loginCheckGroup.DELETE("/tweets/:id", tweetCon.CreateTweet) ツイート削除
