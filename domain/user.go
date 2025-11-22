@@ -29,16 +29,16 @@ type UserRepository interface {
 func NewUser(name string, email string, password string, confirmPassword string) (*User, error) {
 	// name のドメインルール
 	if utf8.RuneCountInString(name) < nameLengthMin || utf8.RuneCountInString(name) > nameLengthMax {
-		return nil, apperrors.BadParam.Wrap(apperrors.ErrMismatchData, "Name must be between 1 and 255 characters")
+		return nil, apperrors.ReqBadParam.Wrap(apperrors.ErrMismatchData, "Name must be between 1 and 255 characters")
 	}
 	// email のドメインルール
 	if _, err := mail.ParseAddress(email); err != nil {
-		return nil, apperrors.BadParam.Wrap(err, "Please enter a valid email address")
+		return nil, apperrors.ReqBadParam.Wrap(err, "Please enter a valid email address")
 	}
 
 	// password のドメインルール
 	if password != confirmPassword {
-		return nil, apperrors.BadParam.Wrap(apperrors.ErrMismatchData, "mismatch password and confirmPassword")
+		return nil, apperrors.ReqBadParam.Wrap(apperrors.ErrMismatchData, "mismatch password and confirmPassword")
 	}
 	p, err := NewPassword(password)
 	if err != nil {
@@ -56,18 +56,18 @@ func NewUser(name string, email string, password string, confirmPassword string)
 
 func ReconstructUser(id, name, email, hashedPassword string, isActive bool) (*User, error) {
 	if id == "" {
-		return nil, apperrors.BadParam.Wrap(apperrors.ErrMismatchData, "id must not be empty")
+		return nil, apperrors.ReqBadParam.Wrap(apperrors.ErrMismatchData, "id must not be empty")
 	}
 	if utf8.RuneCountInString(name) < nameLengthMin || utf8.RuneCountInString(name) > nameLengthMax {
-		return nil, apperrors.BadParam.Wrap(apperrors.ErrMismatchData, "Name must be between 1 and 255 characters")
+		return nil, apperrors.ReqBadParam.Wrap(apperrors.ErrMismatchData, "Name must be between 1 and 255 characters")
 	}
 	if _, err := mail.ParseAddress(email); err != nil {
-		return nil, apperrors.BadParam.Wrap(err, "invalid email")
+		return nil, apperrors.ReqBadParam.Wrap(err, "invalid email")
 	}
 
 	password, err := NewPasswordHash(hashedPassword)
 	if err != nil {
-		return nil, apperrors.BadParam.Wrap(err, "invalid password")
+		return nil, apperrors.ReqBadParam.Wrap(err, "invalid password")
 	}
 
 	return &User{
@@ -85,19 +85,19 @@ type Password struct {
 
 func NewPassword(pass string) (Password, error) {
 	if len(pass) < passwordLengthMin {
-		return Password{}, apperrors.BadParam.Wrap(ErrTooShort, "password must be at least 8 characters")
+		return Password{}, apperrors.ReqBadParam.Wrap(ErrTooShort, "password must be at least 8 characters")
 	}
 	if !HasKigou(pass) {
-		return Password{}, apperrors.BadParam.Wrap(ErrNoHasKigou, "password must not contain symbols (-_!?)")
+		return Password{}, apperrors.ReqBadParam.Wrap(ErrNoHasKigou, "password must not contain symbols (-_!?)")
 	}
 	if !HasHanSu(pass) {
-		return Password{}, apperrors.BadParam.Wrap(ErrNoHasHanSu, "password must contain at least one number")
+		return Password{}, apperrors.ReqBadParam.Wrap(ErrNoHasHanSu, "password must contain at least one number")
 	}
 	if !HasLowerEi(pass) {
-		return Password{}, apperrors.BadParam.Wrap(ErrNoHasLowerEi, "password must contain at least one lowercase letter")
+		return Password{}, apperrors.ReqBadParam.Wrap(ErrNoHasLowerEi, "password must contain at least one lowercase letter")
 	}
 	if !HasUpperEi(pass) {
-		return Password{}, apperrors.BadParam.Wrap(ErrNoHasUpperEi, "password must contain at least one uppercase letter")
+		return Password{}, apperrors.ReqBadParam.Wrap(ErrNoHasUpperEi, "password must contain at least one uppercase letter")
 	}
 	return Password{
 		value: pass,
