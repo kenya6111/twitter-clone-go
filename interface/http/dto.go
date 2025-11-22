@@ -39,10 +39,10 @@ func ToUserListResponse(users []domain.User) []UserResponse {
 
 // CreateTweetResponse はツイート作成APIのレスポンス用DTO
 type CreateTweetResponse struct {
-	ID        string `json:"id"`
-	UserID    string `json:"userId"`
-	Content   string `json:"content"`
-	ImageUrl  string `json:"imageUrl"`
+	ID        string `json:"id,omitempty"`
+	UserID    string `json:"userId,omitempty"`
+	Content   string `json:"content,omitempty"`
+	ImageUrl  string `json:"imageUrl,omitempty"`
 	ReplyToID string `json:"replyToId,omitempty"`
 }
 
@@ -52,10 +52,7 @@ func ToCreateTweetResponse(tweet *domain.Tweet) *CreateTweetResponse {
 		return nil
 	}
 	return &CreateTweetResponse{
-		// ID:        tweet.ID,
 		UserID:  tweet.UserID,
 		Content: tweet.Content,
-		// ImageUrl:  tweet.ImageUrl,
-		// ReplyToID: tweet.ReplyToID,
 	}
 }
