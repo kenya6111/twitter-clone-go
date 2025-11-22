@@ -33,7 +33,7 @@ func (h *UserHandler) GetUserList(c *gin.Context) {
 		ErrorHandler(c, err)
 		return
 	}
-	SuccessResponse(c, users)
+	SuccessResponse(c, ToUserListResponse(users))
 }
 
 func (h *UserHandler) SignUp(c *gin.Context) {
@@ -73,7 +73,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 		ErrorHandler(c, apperrors.ErrUnauthorized)
 		return
 	}
-	SuccessResponse(c, user)
+	SuccessResponse(c, ToUserResponse(user))
 }
 
 func (h *UserHandler) Logout(c *gin.Context) {
