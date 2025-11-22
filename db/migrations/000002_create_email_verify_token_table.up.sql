@@ -1,7 +1,7 @@
 
 CREATE TABLE IF NOT EXISTS email_verify_token (
     id SERIAL PRIMARY KEY,
-    user_id int NOT NULL UNIQUE,
+    user_id VARCHAR(100) NOT NULL,
     token VARCHAR(100) NOT NULL,
     expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
