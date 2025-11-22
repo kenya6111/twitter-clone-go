@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"twitter-clone-go/application"
 
 	"github.com/gin-gonic/gin"
@@ -17,13 +16,11 @@ func NewTweetHandler(u application.TweetUsecase) *TweetHandler {
 
 func (h *TweetHandler) CreateTweet(c *gin.Context) {
 	var request application.TweetInfo
-	fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
 
 	request.UserId = c.PostForm("userId")
 	request.Content = c.PostForm("content")
 	request.ReplyToId = c.PostForm("replyToId")
 
-	fmt.Println(request)
 	form, err := c.MultipartForm()
 	if err != nil {
 		ErrorHandler(c, err)
@@ -35,6 +32,5 @@ func (h *TweetHandler) CreateTweet(c *gin.Context) {
 		return
 	}
 
-	fmt.Println("----???")
 	SuccessResponse(c, ToCreateTweetResponse(tweet))
 }
