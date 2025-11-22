@@ -3,7 +3,7 @@
 //   sqlc v1.29.0
 // source: query.sql
 
-package sqlc
+package tutorial
 
 import (
 	"context"
@@ -74,9 +74,9 @@ RETURNING id, user_id, content, img_url, reply_to_id, created_at
 
 type CreateTweetParams struct {
 	UserID    string
-	Content   pgtype.Text
-	ImgUrl    pgtype.Text
-	ReplyToID pgtype.Text
+	Content   string
+	ImgUrl    string
+	ReplyToID string
 }
 
 func (q *Queries) CreateTweet(ctx context.Context, arg CreateTweetParams) (Tweet, error) {

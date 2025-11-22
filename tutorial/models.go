@@ -2,7 +2,7 @@
 // versions:
 //   sqlc v1.29.0
 
-package sqlc
+package tutorial
 
 import (
 	"github.com/jackc/pgx/v5/pgtype"
@@ -17,7 +17,7 @@ type EmailVerifyToken struct {
 }
 
 type Tweet struct {
-	ID        int32
+	ID        string
 	UserID    string
 	Content   pgtype.Text
 	ImgUrl    pgtype.Text
