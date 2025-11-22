@@ -22,8 +22,6 @@ type TweetRepository interface {
 }
 
 func NewTweet(userId string, content string, ImageUrl string, ReplyToID string) (*Tweet, error) {
-	// userIDの存在チェック
-
 	// content のドメインルール
 	if utf8.RuneCountInString(content) < contentLengthMin || utf8.RuneCountInString(content) > contentLengthMax {
 		return nil, apperrors.ReqBadParam.Wrap(apperrors.ErrMismatchData, fmt.Sprintf("content must be between %s and %s characters", contentLengthMin, contentLengthMax))
@@ -32,8 +30,6 @@ func NewTweet(userId string, content string, ImageUrl string, ReplyToID string) 
 	if utf8.RuneCountInString(ImageUrl) < imageUrlLengthMin || utf8.RuneCountInString(ImageUrl) > imageUrlLengthMax {
 		return nil, apperrors.ReqBadParam.Wrap(apperrors.ErrMismatchData, fmt.Sprintf("imageUrl must be between %s and %s characters", imageUrlLengthMin, imageUrlLengthMax))
 	}
-	// ReplyToIDの存在チェック
-
 	return &Tweet{
 		ID:        ulid.Make().String(),
 		UserID:    userId,
