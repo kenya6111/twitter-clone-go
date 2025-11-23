@@ -1,0 +1,28 @@
+name: GitHub Actions Demo
+
+on: [push]
+
+jobs:
+  echo_hello_world:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "hello world!!"
+  build:
+
+    runs-on: ubuntu-latest
+    # strategy:
+    #   matrix:
+    #     go-version: [ '1.19', '1.20', '1.21.x' ]
+
+    steps:
+      - uses: actions/checkout@v5
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21.x'
+      - name: Install dependencies
+        run: go get .
+      - name: Build
+        run: go build -v ./...
+      - name: Test with the Go CLI
+        run: go test
