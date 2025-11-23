@@ -27,7 +27,7 @@ jobs:
       - name: build db container
         run: |
           pwd
-          cd subdir
+          cd ops
           pwd
           docker compose up -d db
       - name: Test with the Go CLI
