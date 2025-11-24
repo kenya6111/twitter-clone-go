@@ -18,7 +18,7 @@ func NewTweetImageRepository(pool *pgxpool.Pool) *TweetImageRepository {
 	return &TweetImageRepository{&client{pool: pool}}
 }
 
-func (tr *TweetImageRepository) Insert(ctx context.Context, models []domain.TweetImage) (*[]domain.TweetImage, error) {
+func (tr *TweetImageRepository) Insert(ctx context.Context, models []domain.TweetImage) ([]domain.TweetImage, error) {
 	var resultSet []domain.TweetImage
 	q := tr.client.Querier(ctx)
 	for _, model := range models {
@@ -34,7 +34,7 @@ func (tr *TweetImageRepository) Insert(ctx context.Context, models []domain.Twee
 		result := toTweetImageDomain(&image)
 		resultSet = append(resultSet, result)
 	}
-	return &resultSet, nil
+	return resultSet, nil
 }
 
 func toTweetImageDomain(in *db.TweetImage) domain.TweetImage {

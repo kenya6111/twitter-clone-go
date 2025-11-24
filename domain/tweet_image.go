@@ -14,10 +14,10 @@ type TweetImage struct {
 }
 
 type TweetImageRepository interface {
-	Insert(ctx context.Context, model []TweetImage) (*[]TweetImage, error)
+	Insert(ctx context.Context, model []TweetImage) ([]TweetImage, error)
 }
 
-func NewTweetImage(tweetId int, imageUrls []string) (*[]TweetImage, error) {
+func NewTweetImage(tweetId int, imageUrls []string) ([]TweetImage, error) {
 	var result []TweetImage
 	for _, url := range imageUrls {
 		// ImageUrl のドメインルール_
@@ -31,5 +31,5 @@ func NewTweetImage(tweetId int, imageUrls []string) (*[]TweetImage, error) {
 		result = append(result, *image)
 	}
 
-	return &result, nil
+	return result, nil
 }
