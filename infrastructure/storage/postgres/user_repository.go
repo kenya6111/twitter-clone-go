@@ -8,7 +8,6 @@ import (
 	"twitter-clone-go/domain"
 	db "twitter-clone-go/tutorial"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -79,7 +78,7 @@ func (ur *UserRepository) ActivateUser(ctx context.Context, userId string) (*dom
 	q := ur.client.Querier(ctx)
 	activateInfo := db.UpdateUserParams{
 		ID:       userId,
-		IsActive: pgBool(true),
+		IsActive: true,
 	}
 	user, err := q.UpdateUser(ctx, activateInfo)
 	if err != nil {
@@ -97,7 +96,7 @@ func toUserDomain(in *db.User) domain.User {
 		Name:     in.Name,
 		Email:    in.Email,
 		Password: p,
-		IsActive: in.IsActive.Bool,
+		IsActive: in.IsActive,
 	}
 }
 func toUserDomainForHash(in *db.User) domain.User {
@@ -107,8 +106,8 @@ func toUserDomainForHash(in *db.User) domain.User {
 		Name:     in.Name,
 		Email:    in.Email,
 		Password: p,
-		IsActive: in.IsActive.Bool,
+		IsActive: in.IsActive,
 	}
 }
 
-func pgBool(b bool) pgtype.Bool { return pgtype.Bool{Bool: b, Valid: true} }
+// func pgBool(b bool) pgtype.Bool { return pgtype.Bool{Bool: b, Valid: true} }
