@@ -1,8 +1,7 @@
 CREATE TABLE IF NOT EXISTS tweet (
     id SERIAL PRIMARY KEY,
-    user_id VARCHAR(100),
-    content TEXT,
-    img_url TEXT,
-    reply_to_id VARCHAR(100),
+    user_id VARCHAR(100) NOT NULL,
+    content TEXT NOT NULL,
+    reply_to_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

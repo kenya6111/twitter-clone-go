@@ -1,6 +1,6 @@
 
 CREATE TABLE IF NOT EXISTS email_verify_token (
-    id SERIAL PRIMARY KEY,
+    id VARCHAR(100) PRIMARY KEY,
     user_id VARCHAR(100) NOT NULL,
     token VARCHAR(100) NOT NULL,
     expires_at TIMESTAMP NOT NULL,

@@ -11,6 +11,55 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countFollowers = `-- name: CountFollowers :one
+SELECT count(*) FROM follows
+WHERE followed_id = $1
+`
+
+func (q *Queries) CountFollowers(ctx context.Context, followedID string) (int64, error) {
+	row := q.db.QueryRow(ctx, countFollowers, followedID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countTweetLikes = `-- name: CountTweetLikes :one
+SELECT count(*) FROM likes
+WHERE tweet_id = $1
+`
+
+func (q *Queries) CountTweetLikes(ctx context.Context, tweetID int32) (int64, error) {
+	row := q.db.QueryRow(ctx, countTweetLikes, tweetID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countTweetRetweets = `-- name: CountTweetRetweets :one
+SELECT count(*) FROM retweets
+WHERE tweet_id = $1
+`
+
+func (q *Queries) CountTweetRetweets(ctx context.Context, tweetID int32) (int64, error) {
+	row := q.db.QueryRow(ctx, countTweetRetweets, tweetID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countUnreadNotices = `-- name: CountUnreadNotices :one
+SELECT count(*) FROM notices
+WHERE receiver_id = $1
+  AND is_read = FALSE
+`
+
+func (q *Queries) CountUnreadNotices(ctx context.Context, receiverID string) (int64, error) {
+	row := q.db.QueryRow(ctx, countUnreadNotices, receiverID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countUserTweets = `-- name: CountUserTweets :one
 SELECT count(*) FROM tweet
 WHERE user_id = $1
@@ -63,36 +112,262 @@ func (q *Queries) CreateEmailVerifyToken(ctx context.Context, arg CreateEmailVer
 	return i, err
 }
 
-const createTweet = `-- name: CreateTweet :one
-INSERT INTO tweet (
-  user_id, content, img_url, reply_to_id
+const createFollow = `-- name: CreateFollow :exec
+
+INSERT INTO follows (
+  follower_id, followed_id
+) VALUES (
+  $1, $2
+)
+`
+
+type CreateFollowParams struct {
+	FollowerID string
+	FollowedID string
+}
+
+// =======================
+// follows
+// =======================
+func (q *Queries) CreateFollow(ctx context.Context, arg CreateFollowParams) error {
+	_, err := q.db.Exec(ctx, createFollow, arg.FollowerID, arg.FollowedID)
+	return err
+}
+
+const createLike = `-- name: CreateLike :exec
+
+INSERT INTO likes (
+  tweet_id, user_id
+) VALUES (
+  $1, $2
+)
+`
+
+type CreateLikeParams struct {
+	TweetID int32
+	UserID  string
+}
+
+// =======================
+// likes
+// =======================
+func (q *Queries) CreateLike(ctx context.Context, arg CreateLikeParams) error {
+	_, err := q.db.Exec(ctx, createLike, arg.TweetID, arg.UserID)
+	return err
+}
+
+const createMessage = `-- name: CreateMessage :one
+
+INSERT INTO messages (
+  room_id, sender_id, receiver_id, sentence, image_url
+) VALUES (
+  $1, $2, $3, $4, $5
+)
+RETURNING id, room_id, sender_id, receiver_id, sentence, image_url, created_at
+`
+
+type CreateMessageParams struct {
+	RoomID     int32
+	SenderID   string
+	ReceiverID string
+	Sentence   pgtype.Text
+	ImageUrl   pgtype.Text
+}
+
+// =======================
+// messages
+// =======================
+func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error) {
+	row := q.db.QueryRow(ctx, createMessage,
+		arg.RoomID,
+		arg.SenderID,
+		arg.ReceiverID,
+		arg.Sentence,
+		arg.ImageUrl,
+	)
+	var i Message
+	err := row.Scan(
+		&i.ID,
+		&i.RoomID,
+		&i.SenderID,
+		&i.ReceiverID,
+		&i.Sentence,
+		&i.ImageUrl,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const createMessageImage = `-- name: CreateMessageImage :one
+
+INSERT INTO message_images (
+  message_id, image_url
+) VALUES (
+  $1, $2
+)
+RETURNING id, message_id, image_url, created_at
+`
+
+type CreateMessageImageParams struct {
+	MessageID int32
+	ImageUrl  string
+}
+
+// =======================
+// message_images
+// =======================
+func (q *Queries) CreateMessageImage(ctx context.Context, arg CreateMessageImageParams) (MessageImage, error) {
+	row := q.db.QueryRow(ctx, createMessageImage, arg.MessageID, arg.ImageUrl)
+	var i MessageImage
+	err := row.Scan(
+		&i.ID,
+		&i.MessageID,
+		&i.ImageUrl,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const createNotice = `-- name: CreateNotice :one
+
+INSERT INTO notices (
+  tweet_id, notice_type, sender_id, receiver_id
 ) VALUES (
   $1, $2, $3, $4
 )
-RETURNING id, user_id, content, img_url, reply_to_id, created_at
+RETURNING id, tweet_id, notice_type, sender_id, receiver_id, is_read, created_at
+`
+
+type CreateNoticeParams struct {
+	TweetID    pgtype.Int4
+	NoticeType int16
+	SenderID   string
+	ReceiverID string
+}
+
+// =======================
+// notices
+// =======================
+func (q *Queries) CreateNotice(ctx context.Context, arg CreateNoticeParams) (Notice, error) {
+	row := q.db.QueryRow(ctx, createNotice,
+		arg.TweetID,
+		arg.NoticeType,
+		arg.SenderID,
+		arg.ReceiverID,
+	)
+	var i Notice
+	err := row.Scan(
+		&i.ID,
+		&i.TweetID,
+		&i.NoticeType,
+		&i.SenderID,
+		&i.ReceiverID,
+		&i.IsRead,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const createRetweet = `-- name: CreateRetweet :exec
+INSERT INTO retweets (
+  tweet_id, user_id
+) VALUES (
+  $1, $2
+)
+`
+
+type CreateRetweetParams struct {
+	TweetID int32
+	UserID  string
+}
+
+// =======================
+// retweets
+// =======================
+func (q *Queries) CreateRetweet(ctx context.Context, arg CreateRetweetParams) error {
+	_, err := q.db.Exec(ctx, createRetweet, arg.TweetID, arg.UserID)
+	return err
+}
+
+const createRoom = `-- name: CreateRoom :one
+
+INSERT INTO rooms (
+  user1_id, user2_id
+) VALUES (
+  $1, $2
+)
+RETURNING id, user1_id, user2_id, created_at
+`
+
+type CreateRoomParams struct {
+	User1ID string
+	User2ID string
+}
+
+// =======================
+// rooms
+// =======================
+func (q *Queries) CreateRoom(ctx context.Context, arg CreateRoomParams) (Room, error) {
+	row := q.db.QueryRow(ctx, createRoom, arg.User1ID, arg.User2ID)
+	var i Room
+	err := row.Scan(
+		&i.ID,
+		&i.User1ID,
+		&i.User2ID,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const createTweet = `-- name: CreateTweet :one
+INSERT INTO tweet (
+  user_id, content, reply_to_id
+) VALUES (
+  $1, $2, $3
+)
+RETURNING id, user_id, content, reply_to_id, created_at
 `
 
 type CreateTweetParams struct {
 	UserID    string
 	Content   string
-	ImgUrl    string
-	ReplyToID string
+	ReplyToID pgtype.Int4
 }
 
 func (q *Queries) CreateTweet(ctx context.Context, arg CreateTweetParams) (Tweet, error) {
-	row := q.db.QueryRow(ctx, createTweet,
-		arg.UserID,
-		arg.Content,
-		arg.ImgUrl,
-		arg.ReplyToID,
-	)
+	row := q.db.QueryRow(ctx, createTweet, arg.UserID, arg.Content, arg.ReplyToID)
 	var i Tweet
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
 		&i.Content,
-		&i.ImgUrl,
 		&i.ReplyToID,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const createTweetImage = `-- name: CreateTweetImage :one
+INSERT INTO tweet_images (
+  tweet_id, image_url
+) VALUES (
+  $1, $2
+)
+RETURNING id, tweet_id, image_url, created_at
+`
+
+type CreateTweetImageParams struct {
+	TweetID  int32
+	ImageUrl string
+}
+
+func (q *Queries) CreateTweetImage(ctx context.Context, arg CreateTweetImageParams) (TweetImage, error) {
+	row := q.db.QueryRow(ctx, createTweetImage, arg.TweetID, arg.ImageUrl)
+	var i TweetImage
+	err := row.Scan(
+		&i.ID,
+		&i.TweetID,
+		&i.ImageUrl,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -104,7 +379,7 @@ INSERT INTO users (
 ) VALUES (
   $1, $2, $3
 )
-RETURNING id, name, email, password, is_active
+RETURNING id, name, email, password, bio, header_image_url, profile_image_url, is_active, created_at
 `
 
 type CreateUserParams struct {
@@ -121,7 +396,11 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Name,
 		&i.Email,
 		&i.Password,
+		&i.Bio,
+		&i.HeaderImageUrl,
+		&i.ProfileImageUrl,
 		&i.IsActive,
+		&i.CreatedAt,
 	)
 	return i, err
 }
@@ -133,6 +412,84 @@ WHERE  token = $1
 
 func (q *Queries) DeleteEmailVerifyToken(ctx context.Context, token string) error {
 	_, err := q.db.Exec(ctx, deleteEmailVerifyToken, token)
+	return err
+}
+
+const deleteFollow = `-- name: DeleteFollow :exec
+DELETE FROM follows
+WHERE follower_id = $1
+  AND followed_id = $2
+`
+
+type DeleteFollowParams struct {
+	FollowerID string
+	FollowedID string
+}
+
+func (q *Queries) DeleteFollow(ctx context.Context, arg DeleteFollowParams) error {
+	_, err := q.db.Exec(ctx, deleteFollow, arg.FollowerID, arg.FollowedID)
+	return err
+}
+
+const deleteLike = `-- name: DeleteLike :exec
+DELETE FROM likes
+WHERE tweet_id = $1
+  AND user_id = $2
+`
+
+type DeleteLikeParams struct {
+	TweetID int32
+	UserID  string
+}
+
+func (q *Queries) DeleteLike(ctx context.Context, arg DeleteLikeParams) error {
+	_, err := q.db.Exec(ctx, deleteLike, arg.TweetID, arg.UserID)
+	return err
+}
+
+const deleteMessage = `-- name: DeleteMessage :exec
+DELETE FROM messages
+WHERE id = $1
+`
+
+func (q *Queries) DeleteMessage(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, deleteMessage, id)
+	return err
+}
+
+const deleteMessageImagesByMessage = `-- name: DeleteMessageImagesByMessage :exec
+DELETE FROM message_images
+WHERE message_id = $1
+`
+
+func (q *Queries) DeleteMessageImagesByMessage(ctx context.Context, messageID int32) error {
+	_, err := q.db.Exec(ctx, deleteMessageImagesByMessage, messageID)
+	return err
+}
+
+const deleteNotice = `-- name: DeleteNotice :exec
+DELETE FROM notices
+WHERE id = $1
+`
+
+func (q *Queries) DeleteNotice(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, deleteNotice, id)
+	return err
+}
+
+const deleteRetweet = `-- name: DeleteRetweet :exec
+DELETE FROM retweets
+WHERE tweet_id = $1
+  AND user_id = $2
+`
+
+type DeleteRetweetParams struct {
+	TweetID int32
+	UserID  string
+}
+
+func (q *Queries) DeleteRetweet(ctx context.Context, arg DeleteRetweetParams) error {
+	_, err := q.db.Exec(ctx, deleteRetweet, arg.TweetID, arg.UserID)
 	return err
 }
 
@@ -152,6 +509,26 @@ func (q *Queries) DeleteTweet(ctx context.Context, arg DeleteTweetParams) error 
 	return err
 }
 
+const deleteTweetImage = `-- name: DeleteTweetImage :exec
+DELETE FROM tweet_images
+WHERE id = $1
+`
+
+func (q *Queries) DeleteTweetImage(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, deleteTweetImage, id)
+	return err
+}
+
+const deleteTweetImagesByTweet = `-- name: DeleteTweetImagesByTweet :exec
+DELETE FROM tweet_images
+WHERE tweet_id = $1
+`
+
+func (q *Queries) DeleteTweetImagesByTweet(ctx context.Context, tweetID int32) error {
+	_, err := q.db.Exec(ctx, deleteTweetImagesByTweet, tweetID)
+	return err
+}
+
 const deleteUser = `-- name: DeleteUser :exec
 DELETE FROM users
 WHERE id = $1
@@ -165,14 +542,16 @@ func (q *Queries) DeleteUser(ctx context.Context, id string) error {
 const getEmailVerifyToken = `-- name: GetEmailVerifyToken :one
 SELECT id, user_id, token, expires_at, created_at FROM email_verify_token
 WHERE token = $1
+AND user_id = $2
 `
 
 type GetEmailVerifyTokenParams struct {
-	Token string
+	Token  string
+	UserID string
 }
 
 func (q *Queries) GetEmailVerifyToken(ctx context.Context, arg GetEmailVerifyTokenParams) (EmailVerifyToken, error) {
-	row := q.db.QueryRow(ctx, getEmailVerifyToken, arg.Token)
+	row := q.db.QueryRow(ctx, getEmailVerifyToken, arg.Token, arg.UserID)
 	var i EmailVerifyToken
 	err := row.Scan(
 		&i.ID,
@@ -184,8 +563,32 @@ func (q *Queries) GetEmailVerifyToken(ctx context.Context, arg GetEmailVerifyTok
 	return i, err
 }
 
+const getRoomByUsers = `-- name: GetRoomByUsers :one
+SELECT id, user1_id, user2_id, created_at FROM rooms
+WHERE (user1_id = $1 AND user2_id = $2)
+   OR (user1_id = $2 AND user2_id = $1)
+LIMIT 1
+`
+
+type GetRoomByUsersParams struct {
+	User1ID string
+	User2ID string
+}
+
+func (q *Queries) GetRoomByUsers(ctx context.Context, arg GetRoomByUsersParams) (Room, error) {
+	row := q.db.QueryRow(ctx, getRoomByUsers, arg.User1ID, arg.User2ID)
+	var i Room
+	err := row.Scan(
+		&i.ID,
+		&i.User1ID,
+		&i.User2ID,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getTweet = `-- name: GetTweet :one
-SELECT id, user_id, content, img_url, reply_to_id, created_at FROM tweet
+SELECT id, user_id, content, reply_to_id, created_at FROM tweet
 WHERE id = $1
 `
 
@@ -196,7 +599,6 @@ func (q *Queries) GetTweet(ctx context.Context, id int32) (Tweet, error) {
 		&i.ID,
 		&i.UserID,
 		&i.Content,
-		&i.ImgUrl,
 		&i.ReplyToID,
 		&i.CreatedAt,
 	)
@@ -204,7 +606,7 @@ func (q *Queries) GetTweet(ctx context.Context, id int32) (Tweet, error) {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, name, email, password, is_active FROM users
+SELECT id, name, email, password, bio, header_image_url, profile_image_url, is_active, created_at FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -216,13 +618,17 @@ func (q *Queries) GetUser(ctx context.Context, id string) (User, error) {
 		&i.Name,
 		&i.Email,
 		&i.Password,
+		&i.Bio,
+		&i.HeaderImageUrl,
+		&i.ProfileImageUrl,
 		&i.IsActive,
+		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, name, email, password, is_active FROM users
+SELECT id, name, email, password, bio, header_image_url, profile_image_url, is_active, created_at FROM users
 WHERE email = $1 LIMIT 1
 `
 
@@ -234,18 +640,107 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Name,
 		&i.Email,
 		&i.Password,
+		&i.Bio,
+		&i.HeaderImageUrl,
+		&i.ProfileImageUrl,
 		&i.IsActive,
+		&i.CreatedAt,
 	)
 	return i, err
 }
 
+const listFollowers = `-- name: ListFollowers :many
+SELECT follower_id, followed_id, created_at
+FROM follows
+WHERE followed_id = $1
+ORDER BY created_at DESC
+`
+
+func (q *Queries) ListFollowers(ctx context.Context, followedID string) ([]Follow, error) {
+	rows, err := q.db.Query(ctx, listFollowers, followedID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Follow
+	for rows.Next() {
+		var i Follow
+		if err := rows.Scan(&i.FollowerID, &i.FollowedID, &i.CreatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listFollowings = `-- name: ListFollowings :many
+SELECT follower_id, followed_id, created_at
+FROM follows
+WHERE follower_id = $1
+ORDER BY created_at DESC
+`
+
+func (q *Queries) ListFollowings(ctx context.Context, followerID string) ([]Follow, error) {
+	rows, err := q.db.Query(ctx, listFollowings, followerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Follow
+	for rows.Next() {
+		var i Follow
+		if err := rows.Scan(&i.FollowerID, &i.FollowedID, &i.CreatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listMessageImages = `-- name: ListMessageImages :many
+SELECT id, message_id, image_url, created_at FROM message_images
+WHERE message_id = $1
+ORDER BY created_at ASC
+`
+
+func (q *Queries) ListMessageImages(ctx context.Context, messageID int32) ([]MessageImage, error) {
+	rows, err := q.db.Query(ctx, listMessageImages, messageID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MessageImage
+	for rows.Next() {
+		var i MessageImage
+		if err := rows.Scan(
+			&i.ID,
+			&i.MessageID,
+			&i.ImageUrl,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listReplies = `-- name: ListReplies :many
-SELECT id, user_id, content, img_url, reply_to_id, created_at FROM tweet
+SELECT id, user_id, content, reply_to_id, created_at FROM tweet
 WHERE reply_to_id = $1
 ORDER BY created_at ASC
 `
 
-func (q *Queries) ListReplies(ctx context.Context, replyToID pgtype.Text) ([]Tweet, error) {
+func (q *Queries) ListReplies(ctx context.Context, replyToID pgtype.Int4) ([]Tweet, error) {
 	rows, err := q.db.Query(ctx, listReplies, replyToID)
 	if err != nil {
 		return nil, err
@@ -258,7 +753,6 @@ func (q *Queries) ListReplies(ctx context.Context, replyToID pgtype.Text) ([]Twe
 			&i.ID,
 			&i.UserID,
 			&i.Content,
-			&i.ImgUrl,
 			&i.ReplyToID,
 			&i.CreatedAt,
 		); err != nil {
@@ -272,8 +766,49 @@ func (q *Queries) ListReplies(ctx context.Context, replyToID pgtype.Text) ([]Twe
 	return items, nil
 }
 
+const listRoomMessages = `-- name: ListRoomMessages :many
+SELECT id, room_id, sender_id, receiver_id, sentence, image_url, created_at FROM messages
+WHERE room_id = $1
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type ListRoomMessagesParams struct {
+	RoomID int32
+	Limit  int32
+	Offset int32
+}
+
+func (q *Queries) ListRoomMessages(ctx context.Context, arg ListRoomMessagesParams) ([]Message, error) {
+	rows, err := q.db.Query(ctx, listRoomMessages, arg.RoomID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Message
+	for rows.Next() {
+		var i Message
+		if err := rows.Scan(
+			&i.ID,
+			&i.RoomID,
+			&i.SenderID,
+			&i.ReceiverID,
+			&i.Sentence,
+			&i.ImageUrl,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listTimeline = `-- name: ListTimeline :many
-SELECT t.id, t.user_id, t.content, t.img_url, t.reply_to_id, t.created_at
+SELECT t.id, t.user_id, t.content, t.reply_to_id, t.created_at
 FROM tweet t
 ORDER BY t.created_at DESC
 LIMIT $1 OFFSET $2
@@ -297,7 +832,6 @@ func (q *Queries) ListTimeline(ctx context.Context, arg ListTimelineParams) ([]T
 			&i.ID,
 			&i.UserID,
 			&i.Content,
-			&i.ImgUrl,
 			&i.ReplyToID,
 			&i.CreatedAt,
 		); err != nil {
@@ -311,8 +845,165 @@ func (q *Queries) ListTimeline(ctx context.Context, arg ListTimelineParams) ([]T
 	return items, nil
 }
 
+const listTweetImages = `-- name: ListTweetImages :many
+SELECT id, tweet_id, image_url, created_at FROM tweet_images
+WHERE tweet_id = $1
+ORDER BY created_at ASC
+`
+
+func (q *Queries) ListTweetImages(ctx context.Context, tweetID int32) ([]TweetImage, error) {
+	rows, err := q.db.Query(ctx, listTweetImages, tweetID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TweetImage
+	for rows.Next() {
+		var i TweetImage
+		if err := rows.Scan(
+			&i.ID,
+			&i.TweetID,
+			&i.ImageUrl,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTweetLikes = `-- name: ListTweetLikes :many
+SELECT tweet_id, user_id, created_at
+FROM likes
+WHERE tweet_id = $1
+ORDER BY created_at DESC
+`
+
+func (q *Queries) ListTweetLikes(ctx context.Context, tweetID int32) ([]Like, error) {
+	rows, err := q.db.Query(ctx, listTweetLikes, tweetID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Like
+	for rows.Next() {
+		var i Like
+		if err := rows.Scan(&i.TweetID, &i.UserID, &i.CreatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTweetRetweets = `-- name: ListTweetRetweets :many
+SELECT tweet_id, user_id, created_at
+FROM retweets
+WHERE tweet_id = $1
+ORDER BY created_at DESC
+`
+
+func (q *Queries) ListTweetRetweets(ctx context.Context, tweetID int32) ([]Retweet, error) {
+	rows, err := q.db.Query(ctx, listTweetRetweets, tweetID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Retweet
+	for rows.Next() {
+		var i Retweet
+		if err := rows.Scan(&i.TweetID, &i.UserID, &i.CreatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listUserNotices = `-- name: ListUserNotices :many
+SELECT id, tweet_id, notice_type, sender_id, receiver_id, is_read, created_at FROM notices
+WHERE receiver_id = $1
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type ListUserNoticesParams struct {
+	ReceiverID string
+	Limit      int32
+	Offset     int32
+}
+
+func (q *Queries) ListUserNotices(ctx context.Context, arg ListUserNoticesParams) ([]Notice, error) {
+	rows, err := q.db.Query(ctx, listUserNotices, arg.ReceiverID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Notice
+	for rows.Next() {
+		var i Notice
+		if err := rows.Scan(
+			&i.ID,
+			&i.TweetID,
+			&i.NoticeType,
+			&i.SenderID,
+			&i.ReceiverID,
+			&i.IsRead,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listUserRooms = `-- name: ListUserRooms :many
+SELECT id, user1_id, user2_id, created_at FROM rooms
+WHERE user1_id = $1 OR user2_id = $1
+ORDER BY created_at DESC
+`
+
+func (q *Queries) ListUserRooms(ctx context.Context, user1ID string) ([]Room, error) {
+	rows, err := q.db.Query(ctx, listUserRooms, user1ID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Room
+	for rows.Next() {
+		var i Room
+		if err := rows.Scan(
+			&i.ID,
+			&i.User1ID,
+			&i.User2ID,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUserTweets = `-- name: ListUserTweets :many
-SELECT id, user_id, content, img_url, reply_to_id, created_at FROM tweet
+SELECT id, user_id, content, reply_to_id, created_at FROM tweet
 WHERE user_id = $1
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3
@@ -337,7 +1028,6 @@ func (q *Queries) ListUserTweets(ctx context.Context, arg ListUserTweetsParams) 
 			&i.ID,
 			&i.UserID,
 			&i.Content,
-			&i.ImgUrl,
 			&i.ReplyToID,
 			&i.CreatedAt,
 		); err != nil {
@@ -352,7 +1042,7 @@ func (q *Queries) ListUserTweets(ctx context.Context, arg ListUserTweetsParams) 
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, name, email, password, is_active FROM users
+SELECT id, name, email, password, bio, header_image_url, profile_image_url, is_active, created_at FROM users
 ORDER BY name
 `
 
@@ -370,7 +1060,11 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 			&i.Name,
 			&i.Email,
 			&i.Password,
+			&i.Bio,
+			&i.HeaderImageUrl,
+			&i.ProfileImageUrl,
 			&i.IsActive,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -382,35 +1076,38 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 	return items, nil
 }
 
+const markNoticeRead = `-- name: MarkNoticeRead :exec
+UPDATE notices
+SET is_read = TRUE
+WHERE id = $1
+`
+
+func (q *Queries) MarkNoticeRead(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, markNoticeRead, id)
+	return err
+}
+
 const updateTweetContent = `-- name: UpdateTweetContent :one
 UPDATE tweet
-SET content = $2,
-    img_url  = $3
+SET content = $2
 WHERE id = $1
-  AND user_id = $4
-RETURNING id, user_id, content, img_url, reply_to_id, created_at
+  AND user_id = $3
+RETURNING id, user_id, content, reply_to_id, created_at
 `
 
 type UpdateTweetContentParams struct {
 	ID      int32
-	Content pgtype.Text
-	ImgUrl  pgtype.Text
+	Content string
 	UserID  string
 }
 
 func (q *Queries) UpdateTweetContent(ctx context.Context, arg UpdateTweetContentParams) (Tweet, error) {
-	row := q.db.QueryRow(ctx, updateTweetContent,
-		arg.ID,
-		arg.Content,
-		arg.ImgUrl,
-		arg.UserID,
-	)
+	row := q.db.QueryRow(ctx, updateTweetContent, arg.ID, arg.Content, arg.UserID)
 	var i Tweet
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
 		&i.Content,
-		&i.ImgUrl,
 		&i.ReplyToID,
 		&i.CreatedAt,
 	)
@@ -419,14 +1116,14 @@ func (q *Queries) UpdateTweetContent(ctx context.Context, arg UpdateTweetContent
 
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
-SET is_active = $2
+  set is_active = $2
 WHERE id = $1
-RETURNING id, name, email, password, is_active
+RETURNING id, name, email, password, bio, header_image_url, profile_image_url, is_active, created_at
 `
 
 type UpdateUserParams struct {
 	ID       string
-	IsActive pgtype.Bool
+	IsActive bool
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
@@ -437,7 +1134,11 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.Name,
 		&i.Email,
 		&i.Password,
+		&i.Bio,
+		&i.HeaderImageUrl,
+		&i.ProfileImageUrl,
 		&i.IsActive,
+		&i.CreatedAt,
 	)
 	return i, err
 }
