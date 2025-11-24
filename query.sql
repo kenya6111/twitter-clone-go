@@ -95,6 +95,13 @@ WHERE id = $1
 SELECT count(*) FROM tweet
 WHERE user_id = $1;
 
+-- name: BulkInsertTweetImage :copyfrom
+INSERT INTO tweet_images (
+  tweet_id, image_url
+) VALUES (
+  $1, $2
+);
+
 -- name: CreateTweetImage :one
 INSERT INTO tweet_images (
   tweet_id, image_url

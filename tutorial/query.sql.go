@@ -11,6 +11,11 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type BulkInsertTweetImageParams struct {
+	TweetID  int32
+	ImageUrl string
+}
+
 const countFollowers = `-- name: CountFollowers :one
 SELECT count(*) FROM follows
 WHERE followed_id = $1
