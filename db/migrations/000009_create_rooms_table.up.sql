@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS rooms (
+    id SERIAL PRIMARY KEY,
+    user1_id TEXT NOT NULL,
+    user2_id TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user1_id, user2_id)
+    -- FOREIGN KEY (user1_id) REFERENCES users(id) ON DELETE CASCADE,
+    -- FOREIGN KEY (user2_id) REFERENCES users(id) ON DELETE CASCADE
+);
