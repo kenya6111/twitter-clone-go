@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS tweet_images (
+    id SERIAL PRIMARY KEY,
+    tweet_id INTEGER NOT NULL,
+    image_url TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
