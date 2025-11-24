@@ -1,7 +1,15 @@
 package service
 
-import "mime/multipart"
+import (
+	"io"
+)
+
+type FileInput struct {
+	Filename string
+	Size     int64
+	Content  io.Reader
+}
 
 type FileUploader interface {
-	UploadFile(file *multipart.Form) (string, error)
+	UploadFile(file []FileInput) ([]string, error)
 }
