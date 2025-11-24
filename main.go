@@ -31,6 +31,7 @@ func main() {
 	emailVerifyRepo := postgres.NewEmailVerifyRepository(db)
 
 	tweetRepo := postgres.NewTweetRepository(db)
+	tweetImageRepo := postgres.NewTweetImageRepository(db)
 
 	// サービスの注入
 	userDomainService := application.NewUserDomainService(userRepo)
@@ -41,7 +42,7 @@ func main() {
 	// ユースケースの注入
 	userUscase := application.NewUserUsecase(userRepo, emailVerifyRepo, transaction, userDomainService, emailService, passwordHasher, sessionStore)
 
-	tweetUsecase := application.NewTweetUsecase(tweetRepo, transaction, fileUploadService)
+	tweetUsecase := application.NewTweetUsecase(tweetRepo, tweetImageRepo, transaction, fileUploadService)
 
 	// ハンドラーの注入
 	userCon := http.NewUserHandler(userUscase)
@@ -58,7 +59,7 @@ func main() {
 	loginCheckGroup := router.Group("/")
 	loginCheckGroup.Use(http.CheckLogin(sessionStore))
 	loginCheckGroup.GET("/users", userCon.GetUserList)
-	loginCheckGroup.POST("/tweets", tweetCon.CreateTweet)
+	router.POST("/tweets", tweetCon.CreateTweet)
 	// loginCheckGroup.GET("/tweets", tweetCon.CreateTweet) 一覧取得
 	// loginCheckGroup.GET("/tweets/:id", tweetCon.CreateTweet) 詳細取得
 	// loginCheckGroup.DELETE("/tweets/:id", tweetCon.CreateTweet) ツイート削除
