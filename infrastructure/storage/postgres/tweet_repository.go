@@ -7,6 +7,7 @@ import (
 	"twitter-clone-go/domain"
 	db "twitter-clone-go/tutorial"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -18,13 +19,12 @@ func NewTweetRepository(pool *pgxpool.Pool) *TweetRepository {
 	return &TweetRepository{&client{pool: pool}}
 }
 
-func (tr *TweetRepository) InsertTweet(ctx context.Context, model *domain.Tweet) (*domain.Tweet, error) {
+func (tr *TweetRepository) Insert(ctx context.Context, model *domain.Tweet) (*domain.Tweet, error) {
 	q := tr.client.Querier(ctx)
 	tweetInfo := db.CreateTweetParams{
 		UserID:    model.UserID,
 		Content:   model.Content,
-		ImgUrl:    model.ImageUrl,
-		ReplyToID: model.ReplyToID,
+		ReplyToID: toPgtypeInt4(model.ReplyToID),
 	}
 	tweet, err := q.CreateTweet(ctx, tweetInfo)
 	if err != nil {
@@ -36,11 +36,31 @@ func (tr *TweetRepository) InsertTweet(ctx context.Context, model *domain.Tweet)
 }
 
 func toTweetDomain(in *db.Tweet) domain.Tweet {
+	var replyID *int
+	if in.ReplyToID.Valid {
+		val := int(in.ReplyToID.Int32)
+		replyID = &val
+	}
 	return domain.Tweet{
-		ID:        in.ID,
+		ID:        int(in.ID),
 		UserID:    in.UserID,
-		Content:   in.Content.String,
-		ImageUrl:  in.ImgUrl.String,
-		ReplyToID: in.ReplyToID.String,
+		Content:   in.Content,
+		ReplyToID: replyID,
+	}
+}
+
+func toPgtypeText(val string) pgtype.Text {
+	return pgtype.Text{
+		String: val,
+		Valid:  val != "",
+	}
+}
+func toPgtypeInt4(val *int) pgtype.Int4 {
+	if val == nil {
+		return pgtype.Int4{}
+	}
+	return pgtype.Int4{
+		Int32: int32(*val),
+		Valid: true,
 	}
 }
