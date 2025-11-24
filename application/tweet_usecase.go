@@ -62,12 +62,11 @@ func (t *TweetUsecaseImpl) CreateTweet(ctx context.Context, request TweetInfo) (
 		if err != nil {
 			return err
 		}
-		images, err := t.tweetImageRepo.Insert(ctx, imagesModel)
+		_, err = t.tweetImageRepo.Insert(ctx, imagesModel)
 		if err != nil {
 			return apperrors.InsertDataFailed.Wrap(err, "fail to insert tweetImage")
 		}
 
-		response.Images = images
 		return nil
 	})
 	if err != nil {

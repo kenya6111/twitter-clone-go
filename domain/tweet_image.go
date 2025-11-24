@@ -14,7 +14,7 @@ type TweetImage struct {
 }
 
 type TweetImageRepository interface {
-	Insert(ctx context.Context, model []TweetImage) ([]TweetImage, error)
+	Insert(ctx context.Context, model []TweetImage) (int64, error)
 }
 
 func NewTweetImage(tweetId int, imageUrls []string) ([]TweetImage, error) {
