@@ -16,10 +16,81 @@ type EmailVerifyToken struct {
 	CreatedAt pgtype.Timestamp
 }
 
+type Follow struct {
+	FollowerID string
+	FollowedID string
+	CreatedAt  pgtype.Timestamp
+}
+
+type Like struct {
+	TweetID   int32
+	UserID    string
+	CreatedAt pgtype.Timestamp
+}
+
+type Message struct {
+	ID         int32
+	RoomID     int32
+	SenderID   string
+	ReceiverID string
+	Sentence   pgtype.Text
+	ImageUrl   pgtype.Text
+	CreatedAt  pgtype.Timestamp
+}
+
+type MessageImage struct {
+	ID        int32
+	MessageID int32
+	ImageUrl  string
+	CreatedAt pgtype.Timestamp
+}
+
+type Notice struct {
+	ID         int32
+	TweetID    pgtype.Int4
+	NoticeType int16
+	SenderID   string
+	ReceiverID string
+	IsRead     pgtype.Bool
+	CreatedAt  pgtype.Timestamp
+}
+
+type Retweet struct {
+	TweetID   int32
+	UserID    string
+	CreatedAt pgtype.Timestamp
+}
+
+type Room struct {
+	ID        int32
+	User1ID   string
+	User2ID   string
+	CreatedAt pgtype.Timestamp
+}
+
+type Tweet struct {
+	ID        int32
+	UserID    string
+	Content   string
+	ReplyToID pgtype.Int4
+	CreatedAt pgtype.Timestamp
+}
+
+type TweetImage struct {
+	ID        int32
+	TweetID   int32
+	ImageUrl  string
+	CreatedAt pgtype.Timestamp
+}
+
 type User struct {
-	ID       string
-	Name     string
-	Email    string
-	Password string
-	IsActive pgtype.Bool
+	ID              string
+	Name            string
+	Email           string
+	Password        string
+	Bio             pgtype.Text
+	HeaderImageUrl  pgtype.Text
+	ProfileImageUrl pgtype.Text
+	IsActive        bool
+	CreatedAt       pgtype.Timestamp
 }

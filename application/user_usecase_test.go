@@ -493,7 +493,7 @@ func TestUserUsecaseImpl_Login(t *testing.T) {
 						Password: password,
 						IsActive: true,
 					}, nil),
-					tester.passwordHasher.EXPECT().CompareHashAndPassword("Password1234!", "Password1234!!").Return(errors.New(string(apperrors.Unauthorized))),
+					tester.passwordHasher.EXPECT().CompareHashAndPassword("Password1234!", "Password1234!!").Return(errors.New(string(apperrors.AuthUnauthorized))),
 					// tester.sessionStore.EXPECT().Set(ctx, "1").Return(nil),
 				)
 
@@ -516,7 +516,7 @@ func TestUserUsecaseImpl_Login(t *testing.T) {
 						IsActive: true,
 					}, nil),
 					tester.passwordHasher.EXPECT().CompareHashAndPassword("Password1234!", "Password1234!!").Return(nil),
-					tester.sessionStore.EXPECT().Set(ctx, "1").Return(errors.New(string(apperrors.Unauthorized))),
+					tester.sessionStore.EXPECT().Set(ctx, "1").Return(errors.New(string(apperrors.AuthUnauthorized))),
 				)
 
 			},

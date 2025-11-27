@@ -2,6 +2,7 @@ package http
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"twitter-clone-go/apperrors"
 
@@ -23,12 +24,13 @@ func ErrorHandler(c *gin.Context, err error) {
 	switch appErr.ErrCode {
 	case apperrors.NAData:
 		statusCode = http.StatusNotFound
-	case apperrors.Unauthorized:
+	case apperrors.AuthUnauthorized:
 		statusCode = http.StatusUnauthorized
-	case apperrors.NoTargetData, apperrors.ReqBodyDecodeFailed, apperrors.BadParam, apperrors.DuplicateData:
+	case apperrors.NoTargetData, apperrors.ReqBodyDecodeFailed, apperrors.ReqBadParam, apperrors.DuplicateData:
 		statusCode = http.StatusBadRequest
 	default:
 		statusCode = http.StatusInternalServerError
 	}
+	log.Println(err.Error())
 	c.JSON(statusCode, appErr)
 }

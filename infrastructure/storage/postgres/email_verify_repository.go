@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 	"twitter-clone-go/domain"
-	"twitter-clone-go/tutorial"
 	db "twitter-clone-go/tutorial"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -25,7 +24,7 @@ func (ur *EmailVerifyRepository) Save(ctx context.Context, userId string, token 
 	expiredAt := pgtype.Timestamp{}
 	_ = expiredAt.Scan(time.Now().Add(24 * time.Hour * 7))
 
-	args := tutorial.CreateEmailVerifyTokenParams{
+	args := db.CreateEmailVerifyTokenParams{
 		UserID:    userId,
 		Token:     token,
 		ExpiresAt: expiredAt,
@@ -41,7 +40,7 @@ func (ur *EmailVerifyRepository) Save(ctx context.Context, userId string, token 
 
 func (ur *EmailVerifyRepository) FindByToken(ctx context.Context, token string) (*domain.EmailVerifyToken, error) {
 	q := ur.client.Querier(ctx)
-	args := tutorial.GetEmailVerifyTokenParams{
+	args := db.GetEmailVerifyTokenParams{
 		Token: token,
 	}
 	resultSet, err := q.GetEmailVerifyToken(ctx, args)
